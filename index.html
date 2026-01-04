@@ -1,0 +1,3177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pixel Factory Idle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body{
+  margin:0;
+  padding:20px;
+  background:#1b1b2b url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" fill="%231b1b2b"/><rect x="1" y="1" width="2" height="2" fill="%2325253a"/></svg>');
+  color:#fff;
+  font-family:'Press Start 2P', monospace;
+  text-align:center;
+  image-rendering: pixelated;
+  overflow-x:hidden;
+  position:relative;
+  min-height:100vh;
+  box-sizing:border-box;
+  /* Prevent overscroll behavior on mobile */
+  overscroll-behavior: none;
+  -webkit-overscroll-behavior: none;
+  /* Optimize touch scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent text selection issues */
+  -webkit-touch-callout: none;
+}
+
+/* Completely disable double-tap zoom on all elements */
+* {
+  touch-action: manipulation !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Ensure buttons don't trigger zoom */
+button, input, select, textarea, [role="button"] {
+  touch-action: manipulation !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* Additional zoom prevention for mobile browsers */
+@media screen and (max-width: 768px) {
+  * {
+    touch-action: manipulation !important;
+  }
+
+  /* Prevent zoom on all interactive elements */
+  button, a, input, select, textarea, label, [onclick], [ontouch], [role="button"] {
+    touch-action: manipulation !important;
+    -webkit-touch-callout: none !important;
+  }
+}
+
+/* Prevent iOS safari bounce scrolling */
+html {
+  position: fixed;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  height: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile-specific styles and performance optimizations */
+@media screen and (max-width: 768px) {
+  body {
+    padding:10px;
+    font-size:14px;
+  }
+
+  /* Performance optimizations for mobile */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Optimize rendering performance */
+  .card, .factory, .upgrade-item {
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    /* Hardware acceleration for smoother animations */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Reduce particle effects on mobile for better performance */
+  .particle {
+    /* Use transform3d for hardware acceleration */
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+
+  /* Optimize button performance */
+  button {
+    /* Hardware acceleration */
+    transform: translateZ(0);
+    /* Optimize for touch */
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+    tap-highlight-color: rgba(255, 255, 255, 0.1);
+    /* Prevent text selection on mobile */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Optimize animations for mobile */
+  @media (prefers-reduced-motion: no-preference) {
+    .particle {
+      /* Limit animation frames on mobile */
+      animation-duration: 1.5s; /* Shorter than desktop */
+    }
+  }
+
+  /* Prevent horizontal scrolling issues */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
+
+  /* Optimize text rendering on mobile */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:radial-gradient(circle at 20% 50%, rgba(54, 218, 106, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(108, 140, 255, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 40% 80%, rgba(155, 89, 182, 0.05) 0%, transparent 50%);
+  animation:backgroundPulse 8s infinite ease-in-out;
+  z-index:-1;
+}
+
+body.background-effects-disabled::before{
+  animation-play-state: paused;
+}
+
+@keyframes backgroundPulse{
+  0%, 100%{opacity:0.3}
+  50%{opacity:0.6}
+}
+
+/* Particle Effects */
+.particle{
+  position:absolute;
+  pointer-events:none;
+  animation:particleFloat 2s ease-out forwards;
+  z-index:5;
+}
+
+.particle-money{
+  width:4px;
+  height:4px;
+  background:#ff0;
+  border-radius:50%;
+  box-shadow:0 0 4px #ff0;
+}
+
+.particle-click{
+  width:3px;
+  height:3px;
+  background:#3ad66a;
+  border-radius:50%;
+  box-shadow:0 0 3px #3ad66a;
+}
+
+.particle-production{
+  width:5px;
+  height:2px;
+  background:#6c8cff;
+  border-radius:1px;
+  box-shadow:0 0 3px #6c8cff;
+}
+
+@keyframes particleFloat{
+  0%{
+    opacity:1;
+    transform:translate(0, 0) scale(1);
+  }
+  50%{
+    opacity:0.8;
+    transform:translate(var(--distance) 0) scale(1.2) rotate(var(--angle));
+  }
+  100%{
+    opacity:0;
+    transform:translate(calc(var(--distance) * 1.5) calc(var(--distance) * -0.5)) scale(0.5) rotate(calc(var(--angle) * 2));
+  }
+}
+
+.particle-critical{
+  width:40px;
+  height:20px;
+  background:linear-gradient(45deg, #ff0, #f80);
+  border:2px solid #000;
+  border-radius:10px;
+  box-shadow:0 0 10px #ff0;
+  font-size:0.6rem;
+  font-weight:bold;
+  color:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation:criticalParticleFloat 3s ease-out forwards;
+  text-shadow:1px 1px 0 rgba(255,255,255,0.5);
+}
+
+/* Particle Style Variations */
+
+/* Stars */
+.particle-stars .particle-money::before,
+.particle-stars .particle-click::before,
+.particle-stars .particle-production::before{
+  content: '⭐';
+  font-size: 1.2em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Hearts */
+.particle-hearts .particle-money::before,
+.particle-hearts .particle-click::before,
+.particle-hearts .particle-production::before{
+  content: '💖';
+  font-size: 1.2em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Geometric */
+.particle-geometric .particle-money,
+.particle-geometric .particle-click,
+.particle-geometric .particle-production{
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  transform: rotate(45deg);
+}
+
+/* Energy */
+.particle-energy .particle-money,
+.particle-energy .particle-click,
+.particle-energy .particle-production{
+  background: radial-gradient(circle, currentColor 0%, transparent 70%);
+  border: none;
+  animation: energyPulse 1s infinite ease-in-out;
+}
+
+@keyframes energyPulse{
+  0%, 100%{ transform: scale(1); opacity: 1; }
+  50%{ transform: scale(1.5); opacity: 0.7; }
+}
+
+/* Particle Color Variations */
+
+/* Rainbow */
+.particle-rainbow .particle-money{ background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080); }
+.particle-rainbow .particle-click{ background: linear-gradient(45deg, #ff0000, #00ff00, #0000ff, #ff00ff); }
+.particle-rainbow .particle-production{ background: linear-gradient(45deg, #ffff00, #ff00ff, #00ffff); }
+
+/* Gold */
+.particle-gold .particle-money,
+.particle-gold .particle-click,
+.particle-gold .particle-production{
+  background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+  box-shadow: 0 0 8px #ffd700;
+}
+
+/* Blue */
+.particle-blue .particle-money,
+.particle-blue .particle-click,
+.particle-blue .particle-production{
+  background: linear-gradient(45deg, #4a90e2, #357abd, #4a90e2);
+  box-shadow: 0 0 8px #4a90e2;
+}
+
+/* Red */
+.particle-red .particle-money,
+.particle-red .particle-click,
+.particle-red .particle-production{
+  background: linear-gradient(45deg, #e74c3c, #c0392b, #e74c3c);
+  box-shadow: 0 0 8px #e74c3c;
+}
+
+/* Green */
+.particle-green .particle-money,
+.particle-green .particle-click,
+.particle-green .particle-production{
+  background: linear-gradient(45deg, #27ae60, #229954, #27ae60);
+  box-shadow: 0 0 8px #27ae60;
+}
+
+/* Particle Speed Variations */
+.particle-speed-slow .particle{
+  animation-duration: 3s;
+}
+
+.particle-speed-fast .particle{
+  animation-duration: 1s;
+}
+
+/* Particle Count Variations */
+.particle-count-low .particle-money,
+.particle-count-low .particle-click,
+.particle-count-low .particle-production{
+  opacity: 0.7;
+}
+
+.particle-count-high .particle-money,
+.particle-count-high .particle-click,
+.particle-count-high .particle-production{
+  opacity: 1;
+}
+
+@keyframes criticalParticleFloat{
+  0%{
+    opacity:1;
+    transform:translate(0, 0) scale(1) rotate(0deg);
+  }
+  20%{
+    opacity:1;
+    transform:translate(var(--distance) 0) scale(1.5) rotate(180deg);
+  }
+  100%{
+    opacity:0;
+    transform:translate(calc(var(--distance) * 2) calc(var(--distance) * -1)) scale(0.3) rotate(720deg);
+  }
+}
+
+.critical-notif{
+  position:fixed;
+  top:30%;
+  left:50%;
+  transform:translateX(-50%);
+  background:linear-gradient(45deg, #ff0, #f80);
+  color:#000;
+  padding:20px 30px;
+  border:4px solid #000;
+  border-radius:15px;
+  box-shadow:0 0 30px #ff0, 8px 8px 0 #000;
+  font-size:0.8rem;
+  font-weight:bold;
+  text-align:center;
+  z-index:200;
+  animation:criticalBounce 2s ease-out forwards;
+  text-shadow:2px 2px 0 rgba(255,255,255,0.8);
+}
+
+.multiplier-effect{
+  position:absolute;
+  font-size:2rem;
+  font-weight:bold;
+  pointer-events:none;
+  animation:multiplierFloat 2s ease-out forwards;
+  z-index:15;
+}
+
+@keyframes multiplierFloat{
+  0%{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+  50%{
+    opacity:0.9;
+    transform:translateY(-50px) scale(1.3);
+  }
+  100%{
+    opacity:0;
+    transform:translateY(-100px) scale(0.8);
+  }
+}
+
+.background-particle{
+  position:fixed;
+  width:4px;
+  height:4px;
+  background:radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius:50%;
+  pointer-events:none;
+  animation:backgroundFloat var(--float-speed) infinite ease-in-out;
+  z-index:1;
+}
+
+@keyframes backgroundFloat{
+  0%, 100%{
+    opacity:0;
+    transform:translateY(0px);
+  }
+  50%{
+    opacity:0.3;
+    transform:translateY(-20px);
+  }
+}
+
+@keyframes productionPulse{
+  0%{
+    transform:scale(1);
+  }
+  50%{
+    transform:scale(1.05);
+    filter:brightness(1.2);
+  }
+  100%{
+    transform:scale(1);
+  }
+}
+
+/* Advanced Particle Effects */
+
+/* Fireworks */
+.particle-fireworks .particle-money,
+.particle-fireworks .particle-click,
+.particle-fireworks .particle-production{
+  background: radial-gradient(circle, #ff6b35 0%, #f7931e 30%, #ff4757 60%, transparent 100%);
+  box-shadow: 0 0 10px #ff6b35, 0 0 20px #f7931e;
+  animation: fireworksBurst 1.5s ease-out forwards;
+}
+
+@keyframes fireworksBurst{
+  0%{
+    transform: scale(0.5) rotate(0deg);
+    opacity: 1;
+  }
+  50%{
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100%{
+    transform: scale(0.1) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Explosion */
+.particle-explosion .particle-money,
+.particle-explosion .particle-click,
+.particle-explosion .particle-production{
+  background: radial-gradient(circle, #ff3838 0%, #ff9f1a 40%, #ff3838 80%, transparent 100%);
+  border-radius: 0;
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  animation: explosionExpand 1s ease-out forwards;
+}
+
+@keyframes explosionExpand{
+  0%{
+    transform: scale(0.2);
+    opacity: 1;
+  }
+  70%{
+    transform: scale(1.5);
+    opacity: 0.6;
+  }
+  100%{
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Sparks */
+.particle-sparks .particle-money,
+.particle-sparks .particle-click,
+.particle-sparks .particle-production{
+  background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+  width: 2px;
+  height: 8px;
+  border-radius: 1px;
+  box-shadow: 0 0 6px #ffd700;
+  animation: sparkFly 1.2s ease-out forwards;
+}
+
+@keyframes sparkFly{
+  0%{
+    transform: scaleY(0.5) rotate(0deg);
+    opacity: 1;
+  }
+  50%{
+    transform: scaleY(1.2) rotate(90deg);
+    opacity: 0.8;
+  }
+  100%{
+    transform: scaleY(0.1) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+/* Magic */
+.particle-magic .particle-money,
+.particle-magic .particle-click,
+.particle-magic .particle-production{
+  background: radial-gradient(circle, #9c88ff 0%, #6c5ce7 50%, #a29bfe 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 15px #9c88ff, 0 0 30px #6c5ce7;
+  animation: magicSwirl 2s ease-in-out forwards;
+}
+
+@keyframes magicSwirl{
+  0%{
+    transform: scale(0.5) rotate(0deg);
+    opacity: 1;
+  }
+  25%{
+    transform: scale(1) rotate(90deg);
+    opacity: 0.9;
+  }
+  75%{
+    transform: scale(1.2) rotate(270deg);
+    opacity: 0.6;
+  }
+  100%{
+    transform: scale(0.3) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Confetti */
+.particle-confetti .particle-money,
+.particle-confetti .particle-click,
+.particle-confetti .particle-production{
+  width: 6px;
+  height: 12px;
+  background: linear-gradient(45deg, #ff9ff3, #feca57, #48dbfb, #ff6b6b, #0abde3);
+  border-radius: 2px;
+  animation: confettiFall 2.5s ease-out forwards;
+}
+
+@keyframes confettiFall{
+  0%{
+    transform: translateY(-20px) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50%{
+    transform: translateY(50px) rotate(180deg) scale(1.1);
+    opacity: 0.8;
+  }
+  100%{
+    transform: translateY(120px) rotate(360deg) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* Bubbles */
+.particle-bubbles .particle-money,
+.particle-bubbles .particle-click,
+.particle-bubbles .particle-production{
+  background: radial-gradient(circle, rgba(135, 206, 235, 0.8) 0%, rgba(70, 130, 180, 0.6) 50%, rgba(25, 25, 112, 0.4) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.3);
+  animation: bubbleRise 3s ease-out forwards;
+}
+
+@keyframes bubbleRise{
+  0%{
+    transform: scale(0.3) translateY(0px);
+    opacity: 0.8;
+  }
+  30%{
+    transform: scale(0.8) translateY(-40px);
+    opacity: 0.9;
+  }
+  100%{
+    transform: scale(1.2) translateY(-100px);
+    opacity: 0;
+  }
+}
+
+@keyframes criticalBounce{
+  0%{
+    opacity:0;
+    transform:translateX(-50%) scale(0.5);
+  }
+  20%{
+    opacity:1;
+    transform:translateX(-50%) scale(1.2);
+  }
+  40%{
+    transform:translateX(-50%) scale(0.9);
+  }
+  60%{
+    transform:translateX(-50%) scale(1.1);
+  }
+  80%{
+    transform:translateX(-50%) scale(0.95);
+  }
+  100%{
+    opacity:0;
+    transform:translateX(-50%) scale(1);
+  }
+}
+
+.container{max-width:480px;margin:auto;position:relative}
+
+.card{
+  background:#2a2a44;
+  border:4px solid #000;
+  padding:16px;
+  margin:16px 0;
+  box-shadow:8px 8px 0 #000;
+  position:relative;
+}
+
+h1{font-size:1.2rem;margin-bottom:20px;text-shadow:4px 4px 0 #000}
+
+button{
+  width:100%;
+  padding:16px;
+  margin-top:12px;
+  font-family:'Press Start 2P', monospace;
+  font-size:0.65rem;
+  border:4px solid #000;
+  cursor:pointer;
+  box-shadow:4px 4px 0 #000;
+  transition: all 0.1s;
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(135deg, #3a3a54, #2a2a44);
+  /* Mobile-friendly touch handling */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+  tap-highlight-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile button adjustments */
+@media screen and (max-width: 768px) {
+  button {
+    font-size: 0.7rem;
+    padding: 14px;
+    margin-top: 8px;
+  }
+}
+button:hover{
+  box-shadow:6px 6px 0 #000, 0 0 20px rgba(255, 255, 255, 0.3);
+  transform:translate(-2px,-2px);
+}
+button:active{
+  transform:translate(4px,4px);
+  box-shadow:none;
+}
+
+body.button-animations-disabled button:active{
+  transform:translate(2px,2px);
+}
+button:not(.disabled):hover{
+  filter:brightness(1.2);
+}
+
+/* Shine only on Earn button */
+#earnBtn::before{
+  content:'';
+  position:absolute;
+  top:0; left:-100%;
+  width:50%;
+  height:100%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation:shine 2s infinite;
+}
+@keyframes shine{
+  0%{left:-100%}
+  100%{left:100%}
+}
+@keyframes buttonPulse{
+  0%, 100%{transform:scale(1); box-shadow:4px 4px 0 #000;}
+  50%{transform:scale(1.05); box-shadow:6px 6px 0 #000, 0 0 20px rgba(58, 214, 106, 0.5);}
+}
+
+.earn{background:#3ad66a;color:white;font-size:1rem}
+.upgrade{background:#6c8cff;color:white}
+.factory{background:#ff8c42;color:black}
+.tech{background:#9b59b6;color:white}
+.more-tech-btn{background:#8e44ad;color:white}
+.prestige-btn{background:#e74c3c;color:white}
+.disabled{background:#555 !important;color:#aaa !important;cursor:not-allowed !important}
+
+.tech-desc,.producer-desc{
+  font-size:0.55rem;
+  color:#bbb;
+  margin-top:6px;
+  margin-bottom:12px;
+  line-height:1.2;
+}
+
+/* Enhanced yellow cube */
+.yellow-cube{
+  width:60px;
+  height:60px;
+  background:#ff0;
+  border:4px solid #000;
+  box-shadow:6px 6px 0 #000, 0 0 15px rgba(255, 255, 0, 0.5);
+  margin:0 auto 12px;
+  image-rendering: pixelated;
+  animation:cubeGlow 2s infinite ease-in-out;
+  position:relative;
+}
+
+@keyframes cubeGlow{
+  0%, 100%{box-shadow:6px 6px 0 #000, 0 0 15px rgba(255, 255, 0, 0.5);}
+  50%{box-shadow:6px 6px 0 #000, 0 0 25px rgba(255, 255, 0, 0.8);}
+}
+
+.stats-main{
+  text-align:center;
+  margin-bottom:16px;
+}
+.stats-main p{
+  margin:8px 0;
+  font-size:0.8rem;
+}
+.stats-sub{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  font-size:0.55rem;
+  margin-top:16px;
+}
+.stats-sub p{
+  margin:0;
+  background:#333;
+  padding:8px;
+  border:2px solid #000;
+}
+
+.progress{
+  height:20px;
+  background:#000;
+  border:4px solid #000;
+  margin-top:16px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:inset 0 0 10px rgba(0,0,0,0.5);
+}
+.bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#42e695,#3ad66a);
+  transition:width 0.4s ease;
+  position:relative;
+  animation:progressShine 2s infinite;
+}
+.bar::before{
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0; bottom:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation:barShine 1.5s infinite;
+}
+@keyframes progressShine{
+  0%, 100%{filter:brightness(1);}
+  50%{filter:brightness(1.3);}
+}
+@keyframes barShine{
+  0%{transform:translateX(-100%);}
+  100%{transform:translateX(100%);}
+}
+
+.pixel{font-size:1.8rem;margin-bottom:8px}
+
+.pop{
+  position:absolute;
+  font-size:0.9rem;
+  pointer-events:none;
+  animation:floatUp 1.5s forwards, glow 1.5s forwards;
+  z-index:10;
+  text-shadow:2px 2px 0 #000, 0 0 10px currentColor;
+  font-weight:bold;
+}
+@keyframes floatUp{
+  0%{opacity:1;transform:translateY(0) translateX(0) scale(1);}
+  20%{opacity:1;transform:translateY(-20px) translateX(var(--drift)) scale(1.2);}
+  100%{opacity:0;transform:translateY(-100px) translateX(calc(var(--drift) * 1.5)) scale(0.8);}
+}
+@keyframes glow{
+  0%{filter:drop-shadow(0 0 5px currentColor);}
+  50%{filter:drop-shadow(0 0 15px currentColor);}
+  100%{filter:drop-shadow(0 0 0px currentColor);}
+}
+
+.achievement-notif{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  background:#ff0;
+  color:#000;
+  padding:16px;
+  border:4px solid #000;
+  box-shadow:8px 8px 0 #000;
+  font-size:0.8rem;
+  z-index:100;
+  max-width:90%;
+  animation:achievePop 5s forwards;
+}
+@keyframes achievePop{
+  0%{opacity:0;transform:translateX(-50%) translateY(-100px)}
+  10%{opacity:1;transform:translateX(-50%) translateY(20px)}
+  80%{opacity:1;transform:translateX(-50%) translateY(20px)}
+  100%{opacity:0;transform:translateX(-50%) translateY(-100px)}
+}
+
+.tabs{display:flex;margin-bottom:20px}
+.tab{flex:1;padding:12px;background:#2a2a44;border:4px solid #000;cursor:pointer;box-shadow:4px 4px 0 #000}
+.tab.active{background:#3ad66a;color:white;transform:translate(4px,4px);box-shadow:none}
+
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+#achievements-list{text-align:left;font-size:0.6rem}
+.achievement{background:#333;padding:10px;margin:8px 0;border:2px solid #000}
+.achievement.unlocked{background:#3ad66a;color:black}
+
+#moreTechSection{display:none}
+#prestigeSection{display:none}
+
+/* Volume Controls */
+input[type="range"]{
+  -webkit-appearance:none;
+  appearance:none;
+  height:8px;
+  background:#333;
+  border:2px solid #000;
+  border-radius:4px;
+  outline:none;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:20px;
+  height:20px;
+  background:#3ad66a;
+  border:2px solid #000;
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:2px 2px 0 #000;
+}
+input[type="range"]::-moz-range-thumb{
+  width:20px;
+  height:20px;
+  background:#3ad66a;
+  border:2px solid #000;
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:2px 2px 0 #000;
+}
+
+/* Select/Dropdown Styling */
+select {
+  background: #2a2a44;
+  color: #fff;
+  border: 4px solid #000;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 #000;
+  transition: all 0.1s;
+}
+
+select:hover {
+  box-shadow: 6px 6px 0 #000;
+  transform: translate(-2px, -2px);
+}
+
+select:focus {
+  outline: none;
+  box-shadow: 6px 6px 0 #000, 0 0 0 2px #3ad66a;
+}
+
+select:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* Ensure dropdown options are visible */
+select option:hover,
+select option:focus,
+select option:active {
+  background: #3ad66a !important;
+  color: #000 !important;
+}
+
+/* Override browser defaults for better theme compatibility */
+select::-ms-expand {
+  display: none;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>PIXEL FACTORY IDLE</h1>
+
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" data-tab="game">GAME</div>
+    <div class="tab" data-tab="achievements">ACHIEVEMENTS</div>
+    <div class="tab" data-tab="settings">SETTINGS</div>
+  </div>
+
+  <div id="game" class="tab-content active">
+    <div class="card">
+      <div class="yellow-cube"></div>
+      <div class="stats-main">
+        <p style="font-size:1rem;margin:0;">$<span id="money">0</span></p>
+        <p>CLICK: <span id="clickPower">1</span> | IDLE: <span id="idlePower">0</span>/s</p>
+      </div>
+
+      <div class="stats-sub">
+        <p>⛏️ Miners: <span id="miners">0</span></p>
+        <p>🏭 Factories: <span id="factories">0</span></p>
+        <p>🤖 Robots: <span id="robots">0</span></p>
+        <p>🛰️ Orbitals: <span id="orbitals">0</span></p>
+        <p>⚛️ Quantum: <span id="quantum">0</span></p>
+        <p>💥 Critical: <span id="criticalChance">2%</span> | Streak: <span id="criticalStreak">0</span></p>
+        <p>Total Earned: $<span id="totalEarned">0</span></p>
+      </div>
+
+      <div class="progress"><div class="bar" id="bar"></div></div>
+    </div>
+
+    <button class="earn" id="earnBtn">EARN MONEY</button>
+
+    <div class="card">
+      <div class="pixel">🛒 UPGRADES</div>
+      <button class="upgrade" id="buyClick">+CLICK POWER ($<span id="clickCost">10</span>)</button>
+      <button class="upgrade" id="buyIdle">+IDLE POWER ($<span id="idleCost">20</span>)</button>
+      <button class="upgrade" id="autoBuyerUpgrade" style="display:none;">🤖 AUTO-BUYER UNLOCK ($10,000)</button>
+      <button class="upgrade" id="earlyPrestigeButton" style="display:none;">⭐ PRESTIGE PREVIEW</button>
+    </div>
+
+    <div class="card">
+      <div class="pixel">🏭 PRODUCERS</div>
+      <button class="factory" id="buyMiner">⛏️ BUY MINER ($<span id="minerCost">50</span>)</button>
+      <div class="producer-desc">+2 $/s · Count: <span id="minerCount">0</span></div>
+
+      <button class="factory" id="buyFactory">🏭 BUY FACTORY ($<span id="factoryCost">200</span>)</button>
+      <div class="producer-desc">+10 $/s · Count: <span id="factoryCount">0</span></div>
+
+      <button class="factory" id="buyRobot">🤖 BUY ROBOT ($<span id="robotCost">5000</span>)</button>
+      <div class="producer-desc">+50 $/s · Count: <span id="robotCount">0</span></div>
+
+      <button class="factory" id="buyOrbital">🛰️ BUY ORBITAL ($<span id="orbitalCost">50000</span>)</button>
+      <div class="producer-desc">+500 $/s · Count: <span id="orbitalCount">0</span></div>
+
+      <button class="factory" id="buyQuantum">⚛️ BUY QUANTUM ($<span id="quantumCost">500000</span>)</button>
+      <div class="producer-desc">+5000 $/s · Count: <span id="quantumCount">0</span></div>
+    </div>
+
+    <div class="card">
+      <div class="pixel">🔬 TECH TREE</div>
+
+      <button class="tech" id="tech1">🔧 Better Tools ($<span id="cost1">100</span>)</button>
+      <div class="tech-desc">Increases click power by 50%</div>
+
+      <button class="tech" id="tech2">⚙️ Gear Optimization ($<span id="cost2">300</span>)</button>
+      <div class="tech-desc">Each miner produces +1 $/s</div>
+
+      <button class="tech" id="tech3">⏱️ Faster Clicks ($<span id="cost3">800</span>)</button>
+      <div class="tech-desc">Adds +5 to click power</div>
+
+      <button class="more-tech-btn" id="toggleMoreTech">SHOW MORE TECH ▼</button>
+
+      <div id="moreTechSection">
+        <button class="tech" id="tech4">🔋 Energy Boost ($<span id="cost4">1500</span>)</button>
+        <div class="tech-desc">Increases all idle production by 30%</div>
+
+        <button class="tech" id="tech5">🤖 Auto-Clicker I ($<span id="cost5">2500</span>)</button>
+        <div class="tech-desc">Automatically clicks every 2 seconds</div>
+
+        <button class="tech" id="tech6">⛏️ Miner Efficiency ($<span id="cost6">4000</span>)</button>
+        <div class="tech-desc">Each miner produces +2 more $/s</div>
+
+        <button class="tech" id="tech7">🏭 Factory Tuning ($<span id="cost7">7000</span>)</button>
+        <div class="tech-desc">Each factory produces +5 more $/s</div>
+
+        <button class="tech" id="tech8">✨ Double Gains ($<span id="cost8">12000</span>)</button>
+        <div class="tech-desc">Increases all idle production by 50%</div>
+
+        <button class="tech" id="tech9">🚀 Production Surge ($<span id="cost9">20000</span>)</button>
+        <div class="tech-desc">Doubles click power</div>
+
+        <button class="tech" id="tech10">🔄 Idle Multiplier ($<span id="cost10">35000</span>)</button>
+        <div class="tech-desc">Increases all idle production by 80%</div>
+
+        <button class="tech" id="tech11">⚡ Supercharge ($<span id="cost11">60000</span>)</button>
+        <div class="tech-desc">Doubles click power and +50% idle</div>
+
+        <button class="tech" id="tech12">🌟 Mega Boost ($<span id="cost12">100000</span>)</button>
+        <div class="tech-desc">Doubles all idle production</div>
+
+        <button class="tech" id="tech13">🛠️ Advanced Tools ($<span id="cost13">180000</span>)</button>
+        <div class="tech-desc">Click power ×2.5</div>
+
+        <button class="tech" id="tech14">🤖 Auto-Clicker II ($<span id="cost14">300000</span>)</button>
+        <div class="tech-desc">Strong auto-click every second (×2 power)</div>
+
+        <button class="tech" id="tech15">🔥 Overdrive ($<span id="cost15">500000</span>)</button>
+        <div class="tech-desc">All idle production ×2.5</div>
+
+        <button class="tech" id="tech16">💥 Exponential Growth ($<span id="cost16">800000</span>)</button>
+        <div class="tech-desc">Click ×3 and idle ×2</div>
+
+        <button class="tech" id="tech17">🦾 Robot Army ($<span id="cost17">1300000</span>)</button>
+        <div class="tech-desc">Each factory produces +50 more $/s</div>
+
+        <button class="tech" id="tech18">🌌 Quantum Factory ($<span id="cost18">2500000</span>)</button>
+        <div class="tech-desc">Final boost: Click ×4 and idle ×3</div>
+      </div>
+    </div>
+
+    <div class="card" id="prestigeSection">
+      <div class="pixel">✨ PRESTIGE LEVEL <span id="prestigeLevel">0</span> ✨</div>
+      <p>Next: $<span id="prestigeRequirement">10,000,000</span> total earned</p>
+      <p>Current: $<span id="currentEarned">0</span> total earned</p>
+      <p>Gain <strong><span id="prestigeGain">0</span></strong> Prestige Points</p>
+      <p>Each point = +10% permanent global multiplier</p>
+      <button class="prestige-btn" id="prestigeBtn">PRESTIGE NOW</button>
+    </div>
+  </div>
+
+  <div id="achievements" class="tab-content">
+    <div class="card">
+      <div class="pixel">🏆</div>
+      <h3>ACHIEVEMENTS (<span id="achCount">0</span>/14)</h3>
+      <div id="achievements-list"></div>
+    </div>
+  </div>
+
+  <div id="settings" class="tab-content">
+    <div class="card">
+      <div class="pixel">⚙️ AUDIO SETTINGS</div>
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:10px;font-size:0.6rem;">🎵 MUSIC VOLUME</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:0.8rem;">🔇</span>
+          <input type="range" id="musicVolume" min="0" max="100" value="1" style="flex:1;">
+          <span style="font-size:0.8rem;">🔊</span>
+          <span id="musicVolumeValue" style="font-size:0.6rem;width:30px;">1%</span>
+        </div>
+        <button id="toggleMusic" style="width:auto;margin-top:10px;padding:8px 16px;">TOGGLE MUSIC</button>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:10px;font-size:0.6rem;">🔊 SOUND EFFECTS VOLUME</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:0.8rem;">🔇</span>
+          <input type="range" id="soundVolume" min="0" max="100" value="1" style="flex:1;">
+          <span style="font-size:0.8rem;">🔊</span>
+          <span id="soundVolumeValue" style="font-size:0.6rem;width:30px;">1%</span>
+        </div>
+        <button id="toggleSound" style="width:auto;margin-top:10px;padding:8px 16px;">TOGGLE SOUND EFFECTS</button>
+      </div>
+
+      <div class="pixel" style="margin-top:30px;margin-bottom:15px;">🎨 VISUAL SETTINGS</div>
+
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:10px;font-size:0.6rem;">✨ PARTICLE EFFECTS</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="moneyParticles" checked>
+            💰 Money Pop Particles
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="clickParticles" checked>
+            👆 Click Particles
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="productionParticles" checked>
+            🏭 Production Particles
+          </label>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:10px;font-size:0.6rem;">🎨 PARTICLE STYLE</label>
+        <select id="particleStyleSelector" style="width:100%;padding:8px;margin-bottom:10px;font-family:'Press Start 2P', monospace;font-size:0.5rem;">
+          <option value="default">Default Circles</option>
+          <option value="stars">⭐ Stars</option>
+          <option value="hearts">💖 Hearts</option>
+          <option value="geometric">🔺 Geometric</option>
+          <option value="energy">⚡ Energy</option>
+        </select>
+
+        <label style="display:block;margin-bottom:5px;font-size:0.6rem;">🎨 PARTICLE COLOR</label>
+        <select id="particleColorSelector" style="width:100%;padding:8px;margin-bottom:10px;font-family:'Press Start 2P', monospace;font-size:0.5rem;">
+          <option value="default">Default</option>
+          <option value="rainbow">🌈 Rainbow</option>
+          <option value="gold">🥇 Gold</option>
+          <option value="blue">💙 Blue</option>
+          <option value="red">❤️ Red</option>
+          <option value="green">💚 Green</option>
+        </select>
+
+        <label style="display:block;margin-bottom:5px;font-size:0.6rem;">📊 PARTICLE COUNT</label>
+        <select id="particleCountSelector" style="width:100%;padding:8px;margin-bottom:10px;font-family:'Press Start 2P', monospace;font-size:0.5rem;">
+          <option value="low">Low</option>
+          <option value="normal">Normal</option>
+          <option value="high">High</option>
+        </select>
+
+        <label style="display:block;margin-bottom:5px;font-size:0.6rem;">⚡ PARTICLE SPEED</label>
+        <select id="particleSpeedSelector" style="width:100%;padding:8px;font-family:'Press Start 2P', monospace;font-size:0.5rem;">
+          <option value="slow">Slow</option>
+          <option value="normal">Normal</option>
+          <option value="fast">Fast</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:10px;font-size:0.6rem;">🎆 ADVANCED EFFECTS</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="screenFlash" checked>
+            ⚡ Screen Flash
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="backgroundParticles" checked>
+            ✨ Background Particles
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="multiplierEffects" checked>
+            🔢 Multiplier Effects
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="productionAnimations" checked>
+            🏭 Production Animations
+          </label>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:10px;font-size:0.6rem;">🎆 ADVANCED PARTICLES</label>
+        <select id="advancedParticleSelector" style="width:100%;padding:8px;margin-bottom:10px;font-family:'Press Start 2P', monospace;font-size:0.5rem;">
+          <option value="fireworks">🎆 Fireworks</option>
+          <option value="explosion">💥 Explosion</option>
+          <option value="sparks">⚡ Sparks</option>
+          <option value="magic">✨ Magic</option>
+          <option value="confetti">🎊 Confetti</option>
+          <option value="bubbles">🫧 Bubbles</option>
+        </select>
+      </div>
+
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:10px;font-size:0.6rem;">🎬 ANIMATIONS</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="buttonAnimations" checked>
+            🔘 Button Press Animations
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="backgroundEffects" checked>
+            🌟 Background Effects
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:0.6rem;">
+            <input type="checkbox" id="glowEffects" checked>
+            ✨ Glow Effects
+          </label>
+        </div>
+      </div>
+
+      <button id="resetGame">RESET GAME</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Simplified mobile touch handling - CSS handles zoom prevention
+document.addEventListener('DOMContentLoaded', function() {
+  // Prevent double-tap zoom with simple approach
+  let lastTouchEnd = 0;
+
+  document.addEventListener('touchend', function(event) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
+
+  // Performance optimized button handling for mobile
+  const buttons = document.querySelectorAll('button');
+  buttons.forEach(button => {
+    // Visual feedback for touches with hardware acceleration
+    button.style.webkitTapHighlightColor = 'rgba(255, 255, 255, 0.1)';
+    button.style.tapHighlightColor = 'rgba(255, 255, 255, 0.1)';
+    button.style.transform = 'translateZ(0)'; // Hardware acceleration
+
+    // Throttled touch feedback to improve performance
+    let touchTimeout;
+    button.addEventListener('touchstart', function() {
+      clearTimeout(touchTimeout);
+      this.style.transform = 'translateZ(0) scale(0.98)'; // Visual feedback
+    }, { passive: true });
+
+    button.addEventListener('touchend', function() {
+      clearTimeout(touchTimeout);
+      touchTimeout = setTimeout(() => {
+        this.style.transform = 'translateZ(0)'; // Reset with hardware acceleration
+      }, 50);
+    }, { passive: true });
+
+    // Optimized rapid press handling
+    let lastClickTime = 0;
+    button.addEventListener('touchend', function(e) {
+      const now = Date.now();
+      // Throttle clicks to prevent excessive firing while allowing rapid presses
+      if (now - lastClickTime > 50) { // Minimum 50ms between clicks
+        this.click();
+        lastClickTime = now;
+      }
+    }, { passive: true });
+  });
+
+  // Mobile performance optimizations
+  const isMobile = window.innerWidth <= 768;
+
+  if (isMobile) {
+    // Reduce particle effects on mobile for better performance
+    const originalCreateParticle = window.createParticleEffect;
+    if (originalCreateParticle) {
+      window.createParticleEffect = function(type, x, y, count = 3) {
+        // Reduce particle count on mobile
+        const mobileCount = Math.min(count, 2);
+        return originalCreateParticle.call(this, type, x, y, mobileCount);
+      };
+    }
+
+    // Throttle UI updates on mobile
+    let updateTimeout;
+    const originalUpdateUI = window.updateUI;
+    if (originalUpdateUI) {
+      window.updateUI = function() {
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(() => {
+          originalUpdateUI.call(this);
+        }, 16); // ~60fps throttling
+      };
+    }
+  }
+});
+
+// Audio System
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+// Sound effects using Web Audio API
+function createTone(frequency, duration, type = 'sine', volume = 0.3) {
+  if (!audioContext) return;
+
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  oscillator.frequency.value = frequency;
+  oscillator.type = type;
+
+  gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + duration);
+}
+
+function playClickSound() {
+  // Nintendo-style coin sound
+  createTone(523.25, 0.08, 'square', soundEffectsVolume * 0.3); // C5
+  setTimeout(() => createTone(659.25, 0.08, 'square', soundEffectsVolume * 0.25), 60); // E5
+  setTimeout(() => createTone(783.99, 0.1, 'triangle', soundEffectsVolume * 0.2), 120); // G5
+}
+
+function playPurchaseSound() {
+  // Nintendo-style power-up sound
+  createTone(261.63, 0.1, 'square', soundEffectsVolume * 0.3); // C4
+  setTimeout(() => createTone(329.63, 0.1, 'square', soundEffectsVolume * 0.3), 80); // E4
+  setTimeout(() => createTone(392.00, 0.1, 'square', soundEffectsVolume * 0.3), 160); // G4
+  setTimeout(() => createTone(523.25, 0.2, 'triangle', soundEffectsVolume * 0.25), 240); // C5
+}
+
+function playAchievementSound() {
+  createTone(523, 0.3, 'sine', soundEffectsVolume * 0.3); // C5
+  setTimeout(() => createTone(659, 0.3, 'sine', soundEffectsVolume * 0.3), 150); // E5
+  setTimeout(() => createTone(784, 0.4, 'sine', soundEffectsVolume * 0.3), 300); // G5
+}
+
+function playLevelUpSound() {
+  // Nintendo-style fanfare
+  createTone(523.25, 0.15, 'square', soundEffectsVolume * 0.3); // C5
+  setTimeout(() => createTone(659.25, 0.15, 'square', soundEffectsVolume * 0.3), 100); // E5
+  setTimeout(() => createTone(783.99, 0.15, 'square', soundEffectsVolume * 0.3), 200); // G5
+  setTimeout(() => createTone(1046.50, 0.3, 'triangle', soundEffectsVolume * 0.4), 300); // C6
+}
+
+// Music System
+let musicEnabled = true;
+let musicVolume = 0.01;
+let currentMusicInterval = null;
+let soundEffectsEnabled = true;
+let soundEffectsVolume = 0.01;
+
+// Visual Settings
+let moneyParticles = true;
+let clickParticles = true;
+let productionParticles = true;
+let buttonAnimations = true;
+let backgroundEffects = true;
+let glowEffects = true;
+
+// Advanced Visual Effects
+let screenShake = false;
+let screenFlash = true;
+let backgroundParticles = true;
+let multiplierEffects = true;
+let productionAnimations = true;
+let advancedParticles = 'fireworks'; // fireworks, explosion, sparks, magic, confetti, bubbles
+
+// Auto-Buyer System
+let autoBuyerPurchased = false; // Permanent unlock (persists through resets)
+let autoBuyerEnabled = false; // Current toggle state (resets on game reset)
+let autoBuyerInterval = 1000; // Check every second
+let autoBuyerThreshold = 1.5; // Only buy if we can afford 1.5x the cost
+let autoBuyerMode = 'efficient'; // 'efficient', 'cheapest', 'random'
+
+// Critical Click System
+let criticalChance = 0.02; // 2% base chance
+let criticalMultiplier = 2; // 2x multiplier
+let criticalStreak = 0;
+let lastCriticalTime = 0;
+
+// Theme System
+
+// Particle Customization
+let particleStyle = 'default'; // default, stars, hearts, geometric, energy
+let particleColor = 'default'; // default, rainbow, gold, blue, red, green
+let particleCount = 'normal'; // low, normal, high
+let particleSpeed = 'normal'; // slow, normal, fast
+
+function playBackgroundMusic() {
+  if (!musicEnabled || !audioContext) return;
+
+  // Nintendo-style chiptune melody
+  // Main melody inspired by classic NES games
+  const melody = [
+    // Intro arpeggio
+    {freq: 261.63, duration: 0.15, type: 'square'}, // C4
+    {freq: 329.63, duration: 0.15, type: 'square'}, // E4
+    {freq: 392.00, duration: 0.15, type: 'square'}, // G4
+    {freq: 523.25, duration: 0.3, type: 'triangle'}, // C5
+
+    // Main theme (Super Mario Bros inspired)
+    {freq: 659.25, duration: 0.2, type: 'square'}, // E5
+    {freq: 659.25, duration: 0.2, type: 'square'}, // E5
+    {freq: 0, duration: 0.2, type: 'square'}, // Rest
+    {freq: 659.25, duration: 0.2, type: 'square'}, // E5
+    {freq: 0, duration: 0.2, type: 'square'}, // Rest
+    {freq: 587.33, duration: 0.2, type: 'square'}, // D5
+    {freq: 659.25, duration: 0.2, type: 'square'}, // E5
+    {freq: 0, duration: 0.2, type: 'square'}, // Rest
+    {freq: 698.46, duration: 0.4, type: 'square'}, // F5
+
+    // Bass line accompaniment
+    {freq: 146.83, duration: 0.3, type: 'triangle'}, // D3 (low)
+    {freq: 164.81, duration: 0.3, type: 'triangle'}, // E3
+    {freq: 196.00, duration: 0.4, type: 'triangle'}, // G3
+
+    // Secondary melody
+    {freq: 783.99, duration: 0.15, type: 'square'}, // G5
+    {freq: 698.46, duration: 0.15, type: 'square'}, // F5
+    {freq: 659.25, duration: 0.15, type: 'square'}, // E5
+    {freq: 587.33, duration: 0.2, type: 'square'}, // D5
+    {freq: 523.25, duration: 0.3, type: 'triangle'}, // C5
+
+    // Triumphant ending
+    {freq: 1046.50, duration: 0.1, type: 'square'}, // C6
+    {freq: 1318.51, duration: 0.1, type: 'square'}, // E6
+    {freq: 1567.98, duration: 0.2, type: 'triangle'}  // G6
+  ];
+
+  let noteIndex = 0;
+  let loopCount = 0;
+
+  currentMusicInterval = setInterval(() => {
+    if (!musicEnabled) return;
+
+    const note = melody[noteIndex % melody.length];
+
+    // Skip rests (freq = 0)
+    if (note.freq > 0) {
+      createTone(note.freq, note.duration * 0.9, note.type, musicVolume * 0.4);
+    }
+
+    noteIndex++;
+
+    // Reset to beginning after one complete loop
+    if (noteIndex >= melody.length) {
+      noteIndex = 0;
+      loopCount++;
+    }
+  }, 250); // Faster tempo for chiptune feel
+}
+
+function stopBackgroundMusic() {
+  if (currentMusicInterval) {
+    clearInterval(currentMusicInterval);
+    currentMusicInterval = null;
+  }
+}
+
+// Last UI state for dirty checking (performance optimization)
+let lastUIState = {
+  money: null,
+  clickPower: null,
+  idlePower: null,
+  miners: null,
+  factories: null,
+  robots: null,
+  orbitals: null,
+  quantum: null,
+  totalEarned: null,
+  barWidth: null
+};
+
+let game = {
+  money: 0,
+  totalEarned: 0,
+  clickPower: 1,
+  idlePower: 0,
+  miners: 0,
+  factories: 0,
+  robots: 0,
+  orbitals: 0,
+  quantum: 0,
+  clickCost: 10,
+  idleCost: 20,
+  minerCost: 50,
+  factoryCost: 200,
+  robotCost: 5000,
+  orbitalCost: 50000,
+  quantumCost: 500000,
+  prestigePoints: 0,
+  prestigeLevel: 0,
+  tech: Array(18).fill(false),
+  autoBuyerUnlocked: false,
+  achievements: {
+    firstClick: false,
+    tenClicks: false,
+    hundredMoney: false,
+    thousandMoney: false,
+    firstMiner: false,
+    firstFactory: false,
+    firstRobot: false,
+    firstOrbital: false,
+    firstQuantum: false,
+    techUnlock: false,
+    allTech: false,
+    prestige: false
+  }
+};
+
+if (localStorage.getItem('pixelFactorySave2')) {
+  const saved = JSON.parse(localStorage.getItem('pixelFactorySave2'));
+  Object.assign(game, saved);
+}
+
+const els = {
+  money: document.getElementById('money'),
+  clickPower: document.getElementById('clickPower'),
+  idlePower: document.getElementById('idlePower'),
+  miners: document.getElementById('miners'),
+  factories: document.getElementById('factories'),
+  robots: document.getElementById('robots'),
+  orbitals: document.getElementById('orbitals'),
+  quantum: document.getElementById('quantum'),
+  totalEarned: document.getElementById('totalEarned'),
+  bar: document.getElementById('bar'),
+  achCount: document.getElementById('achCount'),
+  achievementsList: document.getElementById('achievements-list')
+};
+
+const techCosts = [100,300,800,1500,2500,4000,7000,12000,20000,35000,60000,100000,180000,300000,500000,800000,1300000,2500000];
+
+let hideTimer = null;
+let moreTechOpen = false;
+
+function getMultiplier() {
+  return 1 + (game.prestigePoints * 0.1);
+}
+
+function getPrestigeRequirement(level) {
+  // Base requirement: 100k for first prestige
+  // Each subsequent prestige requires exponentially more
+  const baseRequirement = 100000; // 100k
+  const scalingFactor = Math.pow(3, level); // Adjusted scaling for earlier prestige
+  return Math.floor(baseRequirement * scalingFactor);
+}
+
+function updateUI() {
+  // Optimized with dirty checking
+  const moneyStr = Math.floor(game.money).toLocaleString();
+  if (lastUIState.money !== moneyStr) {
+    els.money.textContent = moneyStr;
+    lastUIState.money = moneyStr;
+  }
+
+  if (lastUIState.clickPower !== game.clickPower) {
+    els.clickPower.textContent = game.clickPower;
+    lastUIState.clickPower = game.clickPower;
+  }
+
+  const idleFloor = Math.floor(game.idlePower);
+  if (lastUIState.idlePower !== idleFloor) {
+    els.idlePower.textContent = idleFloor;
+    lastUIState.idlePower = idleFloor;
+  }
+
+  if (lastUIState.miners !== game.miners) {
+    els.miners.textContent = game.miners;
+    document.getElementById('minerCount').textContent = game.miners;
+    lastUIState.miners = game.miners;
+  }
+  if (lastUIState.factories !== game.factories) {
+    els.factories.textContent = game.factories;
+    document.getElementById('factoryCount').textContent = game.factories;
+    lastUIState.factories = game.factories;
+  }
+  if (lastUIState.robots !== game.robots) {
+    els.robots.textContent = game.robots;
+    document.getElementById('robotCount').textContent = game.robots;
+    lastUIState.robots = game.robots;
+  }
+  if (lastUIState.orbitals !== game.orbitals) {
+    els.orbitals.textContent = game.orbitals;
+    document.getElementById('orbitalCount').textContent = game.orbitals;
+    lastUIState.orbitals = game.orbitals;
+  }
+  if (lastUIState.quantum !== game.quantum) {
+    els.quantum.textContent = game.quantum;
+    document.getElementById('quantumCount').textContent = game.quantum;
+    lastUIState.quantum = game.quantum;
+  }
+
+  const totalStr = Math.floor(game.totalEarned).toLocaleString();
+  if (lastUIState.totalEarned !== totalStr) {
+    els.totalEarned.textContent = totalStr;
+    lastUIState.totalEarned = totalStr;
+  }
+
+  // Update critical stats
+  const criticalChanceStr = Math.round((criticalChance + (criticalStreak * 0.01)) * 100) + '%';
+  document.getElementById('criticalChance').textContent = criticalChanceStr;
+  document.getElementById('criticalStreak').textContent = criticalStreak;
+
+  // Costs (always update - cheap)
+  document.getElementById('clickCost').textContent = game.clickCost;
+  document.getElementById('idleCost').textContent = game.idleCost;
+  document.getElementById('minerCost').textContent = game.minerCost;
+  document.getElementById('factoryCost').textContent = game.factoryCost;
+  document.getElementById('robotCost').textContent = game.robotCost;
+  document.getElementById('orbitalCost').textContent = game.orbitalCost;
+  document.getElementById('quantumCost').textContent = game.quantumCost;
+
+  // Tech costs are now handled by attachTechEventListeners() due to dynamic reordering
+
+  // Progress bar
+  const nextBig = Math.max(game.factoryCost, game.robotCost, game.orbitalCost, game.quantumCost) * 5;
+  const width = Math.min((game.money / nextBig) * 100, 100);
+  if (lastUIState.barWidth !== width) {
+    els.bar.style.width = width + '%';
+    lastUIState.barWidth = width;
+  }
+
+  // Button disabling
+  document.querySelectorAll('#game button:not(#earnBtn):not(#toggleMoreTech):not(#prestigeBtn):not(#autoBuyerUpgrade)').forEach(btn => {
+    const span = btn.querySelector('span');
+    if (span) {
+      const cost = parseInt(span.textContent.replace(/[^0-9]/g, '')) || 0;
+      const bought = span.textContent === 'BOUGHT';
+      btn.classList.toggle('disabled', game.money < cost || bought);
+    }
+  });
+
+  // Auto-Buyer Upgrade (unlock at 10k total earned, costs 10k money once, toggle freely after)
+  const autoBuyerButton = document.getElementById('autoBuyerUpgrade');
+  if (game.totalEarned >= 10000) {
+    autoBuyerButton.style.display = 'block';
+
+    if (autoBuyerPurchased) {
+      // Already purchased - show toggle options
+      if (autoBuyerEnabled) {
+        autoBuyerButton.textContent = '🤖 AUTO-BUYER (ENABLED - CLICK TO DISABLE)';
+        autoBuyerButton.classList.remove('disabled');
+      } else {
+        autoBuyerButton.textContent = '🤖 AUTO-BUYER (DISABLED - CLICK TO ENABLE)';
+        autoBuyerButton.classList.remove('disabled');
+      }
+    } else if (game.money >= 10000) {
+      // Can afford initial purchase
+      autoBuyerButton.textContent = '🤖 AUTO-BUYER UNLOCK ($10,000)';
+      autoBuyerButton.classList.remove('disabled');
+    } else {
+      // Cannot afford initial purchase
+      autoBuyerButton.textContent = '🤖 AUTO-BUYER UNLOCK ($10,000 - NEED MONEY)';
+      autoBuyerButton.classList.add('disabled');
+    }
+  } else {
+    autoBuyerButton.style.display = 'none';
+  }
+
+  // Early Prestige Preview (shows at 50k, always clickable)
+  const earlyPrestigeButton = document.getElementById('earlyPrestigeButton');
+  if (game.totalEarned >= 50000) {
+    earlyPrestigeButton.style.display = 'block';
+    earlyPrestigeButton.classList.remove('disabled');
+  } else {
+    earlyPrestigeButton.style.display = 'none';
+  }
+
+  // Prestige (always visible for prestige players, check requirement for new players)
+  const requiredEarned = getPrestigeRequirement(game.prestigeLevel);
+  const canPrestige = game.totalEarned >= requiredEarned;
+
+  if (game.prestigeLevel > 0 || canPrestige) {
+    document.getElementById('prestigeSection').style.display = 'block';
+
+    // Update prestige UI
+    document.getElementById('prestigeLevel').textContent = game.prestigeLevel;
+    document.getElementById('prestigeRequirement').textContent = requiredEarned.toLocaleString();
+    document.getElementById('currentEarned').textContent = Math.floor(game.totalEarned).toLocaleString();
+
+    // Calculate potential gain (adjusted for 100k base requirement)
+    const baseGain = Math.max(1, Math.floor(Math.log10(game.totalEarned) - 3)); // Adjusted from -6 to -3 for 100k scaling
+    const levelMultiplier = Math.pow(1.5, game.prestigeLevel);
+    const gain = Math.floor(baseGain * levelMultiplier);
+    document.getElementById('prestigeGain').textContent = gain;
+
+    // Enable/disable button
+    document.getElementById('prestigeBtn').disabled = !canPrestige;
+    document.getElementById('prestigeBtn').textContent = canPrestige ? 'PRESTIGE NOW' : 'REQUIREMENTS NOT MET';
+  } else {
+    document.getElementById('prestigeSection').style.display = 'none';
+  }
+
+  els.achCount.textContent = Object.values(game.achievements).filter(v => v).length;
+}
+
+function createPop(amount, x, y) {
+  const pop = document.createElement('div');
+  pop.className = 'pop';
+  pop.textContent = '+' + amount.toLocaleString();
+  pop.style.color = amount > 100 ? '#ff0' : '#3ad66a';
+  pop.style.left = x + 'px';
+  pop.style.top = y + 'px';
+  pop.style.setProperty('--drift', (Math.random() - 0.5) * 60 + 'px');
+  document.body.appendChild(pop);
+  setTimeout(() => pop.remove(), 1200);
+
+  // Create particles for money pops
+  if (moneyParticles) {
+    createParticle(x, y, 'money', Math.min(amount / 100 + 1, 5));
+  }
+}
+
+function unlockAchievement(key, name, desc) {
+  if (game.achievements[key]) return;
+  game.achievements[key] = true;
+
+  if (soundEffectsEnabled) playAchievementSound();
+
+  const notif = document.createElement('div');
+  notif.className = 'achievement-notif';
+  notif.innerHTML = `🏆 ACHIEVEMENT UNLOCKED!<br><strong>${name}</strong><br><i>${desc}</i>`;
+
+  const existing = document.querySelectorAll('.achievement-notif');
+  const offset = existing.length * 120;
+  notif.style.top = `${20 + offset}px`;
+
+  document.body.appendChild(notif);
+
+  setTimeout(() => {
+    if (notif.parentNode) notif.parentNode.removeChild(notif);
+  }, 5000);
+
+  renderAchievements();
+  saveGame();
+}
+
+function renderAchievements() {
+  els.achievementsList.innerHTML = '';
+  const achs = [
+    {key:'firstClick', name:'First Steps', desc:'Click the earn button'},
+    {key:'tenClicks', name:'Clicker Pro', desc:'Click 10 times'},
+    {key:'hundredMoney', name:'Hundredaire', desc:'Earn $100 total'},
+    {key:'thousandMoney', name:'Big Spender', desc:'Earn $1,000 total'},
+    {key:'firstMiner', name:'Automation Begins', desc:'Buy your first miner'},
+    {key:'firstFactory', name:'Industrial Age', desc:'Buy your first factory'},
+    {key:'firstRobot', name:'Robotics Era', desc:'Buy your first robot'},
+    {key:'firstOrbital', name:'Space Age', desc:'Buy your first orbital'},
+    {key:'firstQuantum', name:'Quantum Leap', desc:'Buy your first quantum processor'},
+    {key:'techUnlock', name:'Researcher', desc:'Unlock any tech'},
+    {key:'allTech', name:'Master Engineer', desc:'Unlock all tech'},
+    {key:'prestige', name:'Transcended', desc:'Prestige for the first time'}
+  ];
+  achs.forEach(a => {
+    const div = document.createElement('div');
+    div.className = 'achievement ' + (game.achievements[a.key] ? 'unlocked' : '');
+    div.innerHTML = `<strong>${a.name}</strong><br>${a.desc}`;
+    els.achievementsList.appendChild(div);
+  });
+}
+
+let clickCount = 0;
+document.getElementById('earnBtn').addEventListener('click', (e) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+
+  // Check for critical hit
+  let earnings = game.clickPower;
+  let multiplier = 1;
+
+  if (checkCriticalHit()) {
+    multiplier = getCriticalMultiplier();
+    earnings *= multiplier;
+    handleCriticalClick(x, y, multiplier);
+  }
+
+  game.money += earnings;
+  game.totalEarned += earnings;
+  createPop(earnings, x, y);
+
+  // Create click particles
+  if (clickParticles) {
+    createParticle(x, y, 'click', 2);
+  }
+
+  if (soundEffectsEnabled && multiplier === 1) {
+    playClickSound();
+  }
+
+  clickCount++;
+  if (clickCount === 1) unlockAchievement('firstClick', 'First Steps', 'Click the earn button');
+  if (clickCount >= 10) unlockAchievement('tenClicks', 'Clicker Pro', 'Click 10 times');
+
+  updateUI();
+  saveGame();
+});
+
+function buy(costKey, multiplier, effect, achievementKey = null, achievementName = null, achievementDesc = null) {
+  const cost = game[costKey];
+  if (game.money < cost) return;
+  game.money -= cost;
+  effect();
+  game[costKey] = Math.round(game[costKey] * multiplier);
+  if (soundEffectsEnabled) playPurchaseSound();
+  if (achievementKey && !game.achievements[achievementKey]) {
+    unlockAchievement(achievementKey, achievementName, achievementDesc);
+  }
+  updateUI();
+  saveGame();
+}
+
+document.getElementById('buyClick').addEventListener('click', () => buy('clickCost', 1.5, () => game.clickPower += 1));
+document.getElementById('buyIdle').addEventListener('click', () => buy('idleCost', 1.6, () => game.idlePower += 1));
+
+document.getElementById('autoBuyerUpgrade').addEventListener('click', () => {
+  if (game.totalEarned < 10000) return;
+
+  // Check if we need to make initial purchase
+  const needsPurchase = game.money < 10000;
+
+  if (needsPurchase && !autoBuyerEnabled) {
+    // Not enough money for initial purchase
+    return;
+  }
+
+  if (!autoBuyerPurchased) {
+    // First time: Pay 10k to unlock auto-buyer permanently
+    game.money -= 10000;
+    autoBuyerPurchased = true;
+    autoBuyerEnabled = true; // Also enable it immediately
+
+    localStorage.setItem('autoBuyerPurchased', autoBuyerPurchased);
+    localStorage.setItem('autoBuyerEnabled', autoBuyerEnabled);
+
+    // Visual feedback for unlock
+    if (soundEffectsEnabled) {
+      createTone(523.25, 0.3, 'square', soundEffectsVolume * 0.5); // C5
+      setTimeout(() => createTone(659.25, 0.3, 'square', soundEffectsVolume * 0.5), 150); // E5
+      setTimeout(() => createTone(783.99, 0.4, 'triangle', soundEffectsVolume * 0.4), 300); // G5
+      setTimeout(() => createTone(1046.50, 0.3, 'triangle', soundEffectsVolume * 0.5), 450); // C6
+    }
+
+    if (clickParticles) {
+      createParticle(window.innerWidth / 2, window.innerHeight / 2, 'click', 5);
+    }
+
+    // Show achievement-like notification
+    showAutoBuyerUnlockNotification();
+  } else {
+    // Already purchased: Toggle auto-buyer on/off
+    autoBuyerEnabled = !autoBuyerEnabled;
+    localStorage.setItem('autoBuyerEnabled', autoBuyerEnabled);
+
+    // Visual feedback for toggle
+    if (soundEffectsEnabled) {
+      if (autoBuyerEnabled) {
+        createTone(659.25, 0.2, 'square', soundEffectsVolume * 0.4); // Enable sound
+      } else {
+        createTone(400, 0.2, 'triangle', soundEffectsVolume * 0.3); // Disable sound
+      }
+    }
+
+    if (clickParticles) {
+      createParticle(window.innerWidth / 2, window.innerHeight / 2, 'click', 2);
+    }
+  }
+
+  // Update UI
+  updateUI();
+  saveGame();
+});
+
+// Early Prestige Preview Button
+document.getElementById('earlyPrestigeButton').addEventListener('click', () => {
+  if (game.totalEarned >= 50000) {
+    showPrestigePreviewPopup();
+  }
+});
+
+function showAutoBuyerUnlockNotification() {
+  const notif = document.createElement('div');
+  notif.className = 'achievement-notif';
+  notif.innerHTML = `🔓 AUTO-BUYER UNLOCKED!<br><strong>Automation Enabled!</strong><br><i>Auto-buyers are now active</i>`;
+
+  const existing = document.querySelectorAll('.achievement-notif');
+  const offset = existing.length * 120;
+  notif.style.top = `${20 + offset}px`;
+
+  document.body.appendChild(notif);
+
+  setTimeout(() => {
+    if (notif.parentNode) {
+      notif.parentNode.removeChild(notif);
+    }
+  }, 4000);
+}
+
+function showPrestigePreviewPopup() {
+  const canPrestige = game.totalEarned >= getPrestigeRequirement(game.prestigeLevel);
+  const isPreviewOnly = game.totalEarned >= 50000 && !canPrestige;
+
+  // Calculate potential prestige gain (adjusted for 100k base requirement)
+  const baseGain = Math.max(1, Math.floor(Math.log10(game.totalEarned) - 3)); // Adjusted from -6 to -3 for 100k scaling
+  const levelMultiplier = Math.pow(1.5, game.prestigeLevel);
+  const potentialGain = Math.floor(baseGain * levelMultiplier);
+
+  // Create modal overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'prestige-modal-overlay';
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100%';
+  overlay.style.height = '100%';
+  overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = '10000';
+
+  // Create modal content
+  const modal = document.createElement('div');
+  modal.style.background = 'linear-gradient(135deg, #2a2a44, #1a1a2e)';
+  modal.style.border = '4px solid #000';
+  modal.style.borderRadius = '15px';
+  modal.style.padding = '20px';
+  modal.style.maxWidth = '500px';
+  modal.style.width = '90%';
+  modal.style.boxShadow = '0 0 30px rgba(0,0,0,0.9)';
+  modal.style.fontFamily = "'Press Start 2P', monospace";
+  modal.style.color = '#fff';
+
+  const titleText = isPreviewOnly ? '⭐ PRESTIGE PREVIEW ⭐' : '⭐ PRESTIGE PREVIEW ⭐';
+  const statusText = isPreviewOnly ? 'PREVIEW MODE - PRESTIGE NOT YET AVAILABLE' : 'FULL PREVIEW - PRESTIGE AVAILABLE';
+
+  modal.innerHTML = `
+    <h2 style="color: #ffd700; text-align: center; margin-top: 0; font-size: 1.0em;">${titleText}</h2>
+    <p style="text-align: center; color: ${isPreviewOnly ? '#ff9ff3' : '#4ecdc4'}; font-size: 0.6em; margin-bottom: 20px;">${statusText}</p>
+
+    <div style="margin: 20px 0;">
+      <h3 style="color: #4ecdc4; margin-bottom: 10px;">What You LOSE:</h3>
+      <ul style="color: #ff6b6b; margin: 0; padding-left: 20px; line-height: 1.4;">
+        <li>All current money (cash balance)</li>
+        <li>All producers (miners, factories, etc.)</li>
+        <li>All tech upgrades and research</li>
+        <li>Current idle income per second</li>
+        <li>Auto-buyer unlock status</li>
+        <li>Early prestige preview access</li>
+      </ul>
+    </div>
+
+    <div style="margin: 20px 0;">
+      <h3 style="color: #ffd700; margin-bottom: 10px;">What You GAIN:</h3>
+      <ul style="color: #4ecdc4; margin: 0; padding-left: 20px; line-height: 1.4;">
+        <li><strong>Prestige Points:</strong> ${potentialGain} points</li>
+        <li><strong>Global Multiplier:</strong> +${(game.prestigePoints + potentialGain) * 10}% to ALL income</li>
+        <li><strong>Prestige Level:</strong> Increases to ${game.prestigeLevel + 1}</li>
+        <li><strong>Scaling Rewards:</strong> Future prestiges give more points</li>
+      </ul>
+    </div>
+
+    <div style="margin: 20px 0;">
+      <h3 style="color: #ff9ff3; margin-bottom: 10px;">Requirements:</h3>
+      <p style="margin: 5px 0; color: #bbb;">• Current total earned: <span style="color: #4ecdc4;">$${Math.floor(game.totalEarned).toLocaleString()}</span></p>
+      <p style="margin: 5px 0; color: #bbb;">• Required: <span style="color: #ffd700;">$${getPrestigeRequirement(game.prestigeLevel).toLocaleString()}</span></p>
+      <p style="margin: 5px 0; color: #bbb;">• Status: <span style="color: ${canPrestige ? '#4ecdc4' : '#ff6b6b'};">${canPrestige ? 'READY TO PRESTIGE' : `PREVIEW ONLY - NEED $${(getPrestigeRequirement(game.prestigeLevel) - game.totalEarned).toLocaleString()} MORE`}</span></p>
+    </div>
+
+    <div style="margin: 20px 0;">
+      <h3 style="color: #9c88ff; margin-bottom: 10px;">Strategy Tips:</h3>
+      <ul style="color: #ddd; margin: 0; padding-left: 20px; line-height: 1.4; font-size: 0.7em;">
+        <li>Prestige when your income growth slows down</li>
+        <li>Each prestige level gives exponentially more points</li>
+        <li>The global multiplier stacks with all income sources</li>
+        <li>You can prestige multiple times for bigger rewards</li>
+        ${isPreviewOnly ? '<li style="color: #ff9ff3;">Keep progressing to unlock the actual prestige feature!</li>' : ''}
+      </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <button id="close-preview-btn" style="
+        background: #4ecdc4;
+        color: #000;
+        border: 2px solid #000;
+        padding: 10px 20px;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 0.6em;
+        cursor: pointer;
+        margin-right: 10px;
+      ">CLOSE PREVIEW</button>
+
+      ${canPrestige ?
+        `<button id="start-prestige-btn" style="
+          background: #ffd700;
+          color: #000;
+          border: 2px solid #000;
+          padding: 10px 20px;
+          font-family: 'Press Start 2P', monospace;
+          font-size: 0.6em;
+          cursor: pointer;
+        ">START PRESTIGE</button>` : ''
+      }
+    </div>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  // Close button handler
+  document.getElementById('close-preview-btn').addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+
+  // Start prestige button handler (if available)
+  const startBtn = document.getElementById('start-prestige-btn');
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      // Trigger the actual prestige
+      document.getElementById('prestigeBtn').click();
+    });
+  }
+
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  });
+}
+document.getElementById('buyMiner').addEventListener('click', () => buy('minerCost', 1.5, () => { game.miners += 1; game.idlePower += 2; }, 'firstMiner', 'Automation Begins', 'Buy your first miner'));
+document.getElementById('buyFactory').addEventListener('click', () => buy('factoryCost', 1.6, () => { game.factories += 1; game.idlePower += 10; }, 'firstFactory', 'Industrial Age', 'Buy your first factory'));
+document.getElementById('buyRobot').addEventListener('click', () => buy('robotCost', 1.6, () => { game.robots += 1; game.idlePower += 50; }, 'firstRobot', 'Robotics Era', 'Buy your first robot'));
+document.getElementById('buyOrbital').addEventListener('click', () => buy('orbitalCost', 1.6, () => { game.orbitals += 1; game.idlePower += 500; }, 'firstOrbital', 'Space Age', 'Buy your first orbital'));
+document.getElementById('buyQuantum').addEventListener('click', () => buy('quantumCost', 1.6, () => { game.quantum += 1; game.idlePower += 5000; }, 'firstQuantum', 'Quantum Leap', 'Buy your first quantum processor'));
+
+const techEffects = [
+  () => game.clickPower *= 1.5,
+  () => game.idlePower += game.miners * 1,
+  () => game.clickPower += 5,
+  () => game.idlePower *= 1.3,
+  () => setInterval(() => { game.money += game.clickPower; game.totalEarned += game.clickPower; updateUI(); saveGame(); }, 2000),
+  () => game.idlePower += game.miners * 2,
+  () => game.idlePower += game.factories * 5,
+  () => game.idlePower *= 1.5,
+  () => game.clickPower *= 2,
+  () => game.idlePower *= 1.8,
+  () => { game.clickPower *= 2; game.idlePower *= 1.5; },
+  () => game.idlePower *= 2,
+  () => game.clickPower *= 2.5,
+  () => setInterval(() => { game.money += game.clickPower * 2; game.totalEarned += game.clickPower * 2; updateUI(); saveGame(); }, 1000),
+  () => game.idlePower *= 2.5,
+  () => { game.clickPower *= 3; game.idlePower *= 2; },
+  () => game.idlePower += game.factories * 50,
+  () => { game.clickPower *= 4; game.idlePower *= 3; }
+];
+
+// Tech event listeners are now attached by attachTechEventListeners() function
+
+// Toggle More Tech - clean toggle + manual close + auto-hide
+document.getElementById('toggleMoreTech').addEventListener('click', () => {
+  const section = document.getElementById('moreTechSection');
+  const btn = document.getElementById('toggleMoreTech');
+
+  moreTechOpen = !moreTechOpen;
+
+  if (moreTechOpen) {
+    section.style.display = 'block';
+    btn.textContent = 'HIDE TECH ▲';
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      section.style.display = 'none';
+      btn.textContent = 'SHOW MORE TECH ▼';
+      moreTechOpen = false;
+    }, 10000);
+  } else {
+    section.style.display = 'none';
+    btn.textContent = 'SHOW MORE TECH ▼';
+    if (hideTimer) clearTimeout(hideTimer);
+  }
+});
+
+document.getElementById('prestigeBtn').addEventListener('click', () => {
+  const requiredEarned = getPrestigeRequirement(game.prestigeLevel);
+  if (game.totalEarned < requiredEarned) {
+    alert(`You need $${requiredEarned.toLocaleString()} total earned to prestige!`);
+    return;
+  }
+
+  const prestigeMessage = game.prestigeLevel === 0 ?
+    'Prestige? This resets all progress for a permanent multiplier!' :
+    `Prestige to level ${game.prestigeLevel + 1}? This resets all progress but gives permanent bonuses!`;
+
+  if (!confirm(prestigeMessage)) return;
+
+  // Calculate prestige points gained (scales with level, adjusted for 100k base)
+  const baseGain = Math.max(1, Math.floor(Math.log10(game.totalEarned) - 3)); // Adjusted from -6 to -3 for 100k scaling
+  const levelMultiplier = Math.pow(1.5, game.prestigeLevel); // Exponential scaling
+  const gain = Math.floor(baseGain * levelMultiplier);
+
+  game.prestigePoints += gain;
+  game.prestigeLevel++;
+
+  // Advanced visual effects for prestige
+  if (screenShake) triggerScreenShake(3, 1000);
+  if (screenFlash) triggerScreenFlash('#ffd700', 600);
+  if (multiplierEffects) createMultiplierEffect('PRESTIGE', window.innerWidth / 2, window.innerHeight / 2);
+
+  if (soundEffectsEnabled) {
+    // Enhanced prestige sound sequence
+    createTone(523, 0.4, 'sine', soundEffectsVolume); // C5
+    setTimeout(() => createTone(659, 0.4, 'sine', soundEffectsVolume), 150); // E5
+    setTimeout(() => createTone(784, 0.4, 'sine', soundEffectsVolume), 300); // G5
+    setTimeout(() => createTone(1047, 0.6, 'triangle', soundEffectsVolume), 450); // C6
+    setTimeout(() => createTone(1319, 0.8, 'triangle', soundEffectsVolume), 600); // E6
+  }
+
+  // Prestige achievements
+  if (game.prestigeLevel === 1) {
+    unlockAchievement('firstPrestige', 'Ascended', 'Prestige for the first time');
+  } else if (game.prestigeLevel === 5) {
+    unlockAchievement('prestige5', 'Transcendent', 'Reach prestige level 5');
+  } else if (game.prestigeLevel === 10) {
+    unlockAchievement('prestige10', 'Divine', 'Reach prestige level 10');
+  } else if (game.prestigeLevel === 25) {
+    unlockAchievement('prestige25', 'Mythical', 'Reach prestige level 25');
+  } else if (game.prestigeLevel === 50) {
+    unlockAchievement('prestige50', 'Legendary', 'Reach prestige level 50');
+  }
+
+  // Reset game progress
+  game.money = 0;
+  game.totalEarned = 0;
+  game.clickPower = 1;
+  game.idlePower = 0;
+  game.miners = game.factories = game.robots = game.orbitals = game.quantum = 0;
+  game.clickCost = 10;
+  game.idleCost = 20;
+  game.minerCost = 50;
+  game.factoryCost = 200;
+  game.robotCost = 5000;
+  game.orbitalCost = 50000;
+  game.quantumCost = 500000;
+  game.tech = Array(18).fill(false);
+
+  // Reset tech costs to original values
+  techCosts.length = 0;
+  techCosts.push(...[100,300,800,1500,2500,4000,7000,12000,20000,35000,60000,100000,180000,300000,500000,800000,1300000,2500000]);
+
+  // Reinitialize tech tree to original order
+  reinitializeTechTree();
+
+  saveGame();
+  updateUI();
+});
+
+let autoBuyerTimer = 0;
+
+setInterval(() => {
+  if (game.idlePower > 0) {
+    const income = game.idlePower * getMultiplier();
+    game.money += income;
+    game.totalEarned += income;
+
+    // Create production particles occasionally
+    if (productionParticles && Math.random() < 0.3) {
+      const x = Math.random() * window.innerWidth;
+      const y = Math.random() * window.innerHeight * 0.6 + window.innerHeight * 0.2;
+      createParticle(x, y, 'production', Math.min(Math.floor(income / 50) + 1, 3));
+    }
+
+    // Trigger production animation
+    if (productionAnimations && Math.random() < 0.1) {
+      animateProduction();
+    }
+
+    // Create background particles occasionally
+    if (backgroundParticles && Math.random() < 0.05) {
+      createBackgroundParticles();
+    }
+
+    // Run auto-buyer
+    autoBuyerTimer += 1000;
+    if (autoBuyerTimer >= autoBuyerInterval) {
+      runAutoBuyer();
+      autoBuyerTimer = 0;
+    }
+
+    if (game.totalEarned >= 100 && !game.achievements.hundredMoney) unlockAchievement('hundredMoney', 'Hundredaire', 'Earn $100 total');
+    if (game.totalEarned >= 1000 && !game.achievements.thousandMoney) unlockAchievement('thousandMoney', 'Big Spender', 'Earn $1,000 total');
+
+    updateUI();
+    saveGame();
+  }
+}, 1000);
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('resetGame').addEventListener('click', () => {
+  if (confirm('Reset all progress? This cannot be undone!')) {
+    localStorage.removeItem('pixelFactorySave2');
+    Object.assign(game, {
+      money: 0,
+      totalEarned: 0,
+      clickPower: 1,
+      idlePower: 0,
+      miners: 0,
+      factories: 0,
+      robots: 0,
+      orbitals: 0,
+      quantum: 0,
+      clickCost: 10,
+      idleCost: 20,
+      minerCost: 50,
+      factoryCost: 200,
+      robotCost: 5000,
+      orbitalCost: 50000,
+      quantumCost: 500000,
+      prestigePoints: 0,
+      prestigeLevel: 0,
+      tech: Array(18).fill(false),
+      // autoBuyerPurchased persists through resets - only autoBuyerEnabled resets
+      achievements: {
+        firstClick: false,
+        tenClicks: false,
+        hundredMoney: false,
+        thousandMoney: false,
+        firstMiner: false,
+        firstFactory: false,
+        firstRobot: false,
+        firstOrbital: false,
+        firstQuantum: false,
+        techUnlock: false,
+        allTech: false,
+        prestige: false
+      }
+    });
+    reinitializeTechTree();
+    updateUI();
+    renderAchievements();
+  }
+});
+
+// Volume Controls
+document.getElementById('musicVolume').addEventListener('input', (e) => {
+  musicVolume = e.target.value / 100;
+  document.getElementById('musicVolumeValue').textContent = e.target.value + '%';
+  localStorage.setItem('musicVolume', musicVolume);
+});
+
+document.getElementById('soundVolume').addEventListener('input', (e) => {
+  soundEffectsVolume = e.target.value / 100;
+  document.getElementById('soundVolumeValue').textContent = e.target.value + '%';
+  localStorage.setItem('soundVolume', soundEffectsVolume);
+});
+
+document.getElementById('toggleMusic').addEventListener('click', () => {
+  musicEnabled = !musicEnabled;
+  document.getElementById('toggleMusic').textContent = musicEnabled ? 'TOGGLE MUSIC' : 'MUSIC OFF';
+  localStorage.setItem('musicEnabled', musicEnabled);
+
+  if (musicEnabled) {
+    playBackgroundMusic();
+  } else {
+    stopBackgroundMusic();
+  }
+});
+
+document.getElementById('toggleSound').addEventListener('click', () => {
+  soundEffectsEnabled = !soundEffectsEnabled;
+  document.getElementById('toggleSound').textContent = soundEffectsEnabled ? 'TOGGLE SOUND EFFECTS' : 'SOUND EFFECTS OFF';
+  localStorage.setItem('soundEffectsEnabled', soundEffectsEnabled);
+});
+
+// Load audio settings
+if (localStorage.getItem('musicVolume')) {
+  musicVolume = parseFloat(localStorage.getItem('musicVolume'));
+  document.getElementById('musicVolume').value = musicVolume * 100;
+  document.getElementById('musicVolumeValue').textContent = Math.round(musicVolume * 100) + '%';
+}
+
+if (localStorage.getItem('soundVolume')) {
+  soundEffectsVolume = parseFloat(localStorage.getItem('soundVolume'));
+  document.getElementById('soundVolume').value = soundEffectsVolume * 100;
+  document.getElementById('soundVolumeValue').textContent = Math.round(soundEffectsVolume * 100) + '%';
+}
+
+if (localStorage.getItem('musicEnabled') !== null) {
+  musicEnabled = localStorage.getItem('musicEnabled') === 'true';
+  document.getElementById('toggleMusic').textContent = musicEnabled ? 'TOGGLE MUSIC' : 'MUSIC OFF';
+}
+
+if (localStorage.getItem('soundEffectsEnabled') !== null) {
+  soundEffectsEnabled = localStorage.getItem('soundEffectsEnabled') === 'true';
+  document.getElementById('toggleSound').textContent = soundEffectsEnabled ? 'TOGGLE SOUND EFFECTS' : 'SOUND EFFECTS OFF';
+}
+
+// Visual Settings Event Listeners
+document.getElementById('moneyParticles').addEventListener('change', (e) => {
+  moneyParticles = e.target.checked;
+  localStorage.setItem('moneyParticles', moneyParticles);
+});
+
+document.getElementById('clickParticles').addEventListener('change', (e) => {
+  clickParticles = e.target.checked;
+  localStorage.setItem('clickParticles', clickParticles);
+});
+
+document.getElementById('productionParticles').addEventListener('change', (e) => {
+  productionParticles = e.target.checked;
+  localStorage.setItem('productionParticles', productionParticles);
+});
+
+document.getElementById('buttonAnimations').addEventListener('change', (e) => {
+  buttonAnimations = e.target.checked;
+  localStorage.setItem('buttonAnimations', buttonAnimations);
+  updateButtonAnimations();
+});
+
+document.getElementById('backgroundEffects').addEventListener('change', (e) => {
+  backgroundEffects = e.target.checked;
+  localStorage.setItem('backgroundEffects', backgroundEffects);
+  updateBackgroundEffects();
+});
+
+document.getElementById('glowEffects').addEventListener('change', (e) => {
+  glowEffects = e.target.checked;
+  localStorage.setItem('glowEffects', glowEffects);
+  updateGlowEffects();
+});
+
+// Theme and Particle Event Listeners
+
+document.getElementById('particleStyleSelector').addEventListener('change', (e) => {
+  particleStyle = e.target.value;
+  localStorage.setItem('particleStyle', particleStyle);
+  applyParticleStyle();
+});
+
+document.getElementById('particleColorSelector').addEventListener('change', (e) => {
+  particleColor = e.target.value;
+  localStorage.setItem('particleColor', particleColor);
+  applyParticleStyle();
+});
+
+document.getElementById('particleCountSelector').addEventListener('change', (e) => {
+  particleCount = e.target.value;
+  localStorage.setItem('particleCount', particleCount);
+  applyParticleStyle();
+});
+
+document.getElementById('particleSpeedSelector').addEventListener('change', (e) => {
+  particleSpeed = e.target.value;
+  localStorage.setItem('particleSpeed', particleSpeed);
+  applyParticleStyle();
+});
+
+// Advanced Visual Effects Event Listeners
+
+document.getElementById('screenFlash').addEventListener('change', (e) => {
+  screenFlash = e.target.checked;
+  localStorage.setItem('screenFlash', screenFlash);
+});
+
+document.getElementById('backgroundParticles').addEventListener('change', (e) => {
+  backgroundParticles = e.target.checked;
+  localStorage.setItem('backgroundParticles', backgroundParticles);
+});
+
+document.getElementById('multiplierEffects').addEventListener('change', (e) => {
+  multiplierEffects = e.target.checked;
+  localStorage.setItem('multiplierEffects', multiplierEffects);
+});
+
+document.getElementById('productionAnimations').addEventListener('change', (e) => {
+  productionAnimations = e.target.checked;
+  localStorage.setItem('productionAnimations', productionAnimations);
+});
+
+document.getElementById('advancedParticleSelector').addEventListener('change', (e) => {
+  advancedParticles = e.target.value;
+  localStorage.setItem('advancedParticles', advancedParticles);
+  applyParticleStyle();
+});
+
+
+// Visual Effects Functions
+function updateBackgroundEffects() {
+  document.body.classList.toggle('background-effects-disabled', !backgroundEffects);
+}
+
+function updateButtonAnimations() {
+  document.body.classList.toggle('button-animations-disabled', !buttonAnimations);
+}
+
+function updateGlowEffects() {
+  const cube = document.querySelector('.yellow-cube');
+  const earnBtn = document.getElementById('earnBtn');
+
+  if (glowEffects) {
+    cube.style.animationPlayState = 'running';
+    earnBtn.style.animationPlayState = 'running';
+  } else {
+    cube.style.animationPlayState = 'paused';
+    earnBtn.style.animationPlayState = 'paused';
+  }
+}
+
+// Tech Tree Reordering Functions
+function reorderTechTree(boughtTechIndex) {
+  // Find the next unbought tech
+  let nextUnboughtIndex = -1;
+  for (let i = 0; i < 18; i++) {
+    if (!game.tech[i]) {
+      nextUnboughtIndex = i;
+      break;
+    }
+  }
+
+  // If no unbought tech found or the bought tech is the only one left, just mark as bought
+  if (nextUnboughtIndex === -1 || nextUnboughtIndex === boughtTechIndex) {
+    // Mark the bought tech as "BOUGHT" in the UI
+    const boughtTechElement = document.getElementById(`tech${boughtTechIndex + 1}`);
+    if (boughtTechElement) {
+      const costSpan = boughtTechElement.querySelector('span');
+      if (costSpan) {
+        costSpan.textContent = 'BOUGHT';
+      }
+      boughtTechElement.classList.add('disabled');
+    }
+    return;
+  }
+
+  // Get the DOM elements for the bought tech and the first unbought tech
+  const boughtTechElement = document.getElementById(`tech${boughtTechIndex + 1}`);
+  const boughtTechDesc = boughtTechElement ? boughtTechElement.nextElementSibling : null;
+  const nextUnboughtElement = document.getElementById(`tech${nextUnboughtIndex + 1}`);
+  const nextUnboughtDesc = nextUnboughtElement ? nextUnboughtElement.nextElementSibling : null;
+
+  if (!boughtTechElement || !nextUnboughtElement) return;
+
+  // Create the bought tech HTML with "BOUGHT" status
+  const boughtTechHTML = boughtTechElement.outerHTML.replace(/\$<span[^>]*>[^<]*<\/span>/, '$<span id="cost_bought_' + boughtTechIndex + '">BOUGHT</span>');
+  const boughtTechDescHTML = boughtTechDesc ? boughtTechDesc.outerHTML : '';
+
+  // Replace the bought tech position with the next unbought tech
+  boughtTechElement.outerHTML = nextUnboughtElement.outerHTML;
+  if (boughtTechDesc && nextUnboughtDesc) {
+    boughtTechDesc.outerHTML = nextUnboughtDesc.outerHTML;
+  }
+
+  // Move the bought tech to the bottom of the more tech section
+  const moreTechSection = document.getElementById('moreTechSection');
+  if (moreTechSection) {
+    moreTechSection.insertAdjacentHTML('beforeend', boughtTechHTML);
+    if (boughtTechDescHTML) {
+      moreTechSection.insertAdjacentHTML('beforeend', boughtTechDescHTML);
+    }
+  }
+
+  // Update IDs and event listeners for the moved elements
+  updateTechElementIDs();
+
+  // Reattach event listeners (don't swap arrays, keep them in original order)
+  attachTechEventListeners();
+}
+
+function updateTechElementIDs() {
+  // Update IDs for all tech elements within the tech tree card only
+  const techTreeCard = document.querySelector('.card .pixel').parentElement;
+  const allTechElements = techTreeCard.querySelectorAll('.tech');
+
+  allTechElements.forEach((element, index) => {
+    const newId = `tech${index + 1}`;
+    element.id = newId;
+
+    // Update cost span ID
+    const costSpan = element.querySelector('span');
+    if (costSpan) {
+      costSpan.id = `cost${index + 1}`;
+    }
+  });
+}
+
+function attachTechEventListeners() {
+  // Since arrays stay in original order, we need to map DOM positions to array indices
+  const techElements = document.querySelectorAll('.tech');
+
+  techElements.forEach((element, domIndex) => {
+    const elementId = `tech${domIndex + 1}`;
+
+    // Update the element ID to match its position
+    element.id = elementId;
+
+    // Find which tech this element represents by checking the button text
+    let techArrayIndex = -1;
+    const buttonText = element.textContent.replace(/\$[\d,BOUGHT]+/, '').trim();
+
+    // Match against original tech names
+    for (let i = 0; i < 18; i++) {
+      const originalData = getOriginalTechData(i);
+      if (originalData && buttonText.includes(originalData.name.split(' ')[0])) {
+        techArrayIndex = i;
+        break;
+      }
+    }
+
+    if (techArrayIndex === -1) return; // Couldn't find matching tech
+
+    // Update visual state
+    const costSpan = element.querySelector('span');
+    if (costSpan) {
+      if (game.tech[techArrayIndex]) {
+        costSpan.textContent = 'BOUGHT';
+        element.classList.add('disabled');
+      } else {
+        costSpan.textContent = techCosts[techArrayIndex];
+        element.classList.remove('disabled');
+      }
+    }
+
+    // Remove existing listeners to avoid duplicates
+    element.replaceWith(element.cloneNode(true));
+    const newElement = document.getElementById(elementId);
+
+    // Reapply visual state after cloning
+    const newCostSpan = newElement.querySelector('span');
+    if (newCostSpan) {
+      if (game.tech[techArrayIndex]) {
+        newCostSpan.textContent = 'BOUGHT';
+        newElement.classList.add('disabled');
+      } else {
+        newCostSpan.textContent = techCosts[techArrayIndex];
+        newElement.classList.remove('disabled');
+      }
+    }
+
+    newElement.addEventListener('click', () => {
+      if (game.tech[techArrayIndex] || game.money < techCosts[techArrayIndex]) return;
+
+      game.money -= techCosts[techArrayIndex];
+      game.tech[techArrayIndex] = true;
+      techEffects[techArrayIndex]();
+
+      // Reorder tech tree
+      reorderTechTree(techArrayIndex);
+
+      if (soundEffectsEnabled) playLevelUpSound();
+      if (!game.achievements.techUnlock) unlockAchievement('techUnlock', 'Researcher', 'Unlock any tech');
+      if (game.tech.every(t => t)) unlockAchievement('allTech', 'Master Engineer', 'Unlock all tech');
+      updateUI();
+      saveGame();
+    });
+  });
+}
+
+function getOriginalTechData(index) {
+  const techData = [
+    { name: "🔧 Better Tools", desc: "Increases click power by 50%" },
+    { name: "⚙️ Gear Optimization", desc: "Each miner produces +1 $/s" },
+    { name: "⏱️ Faster Clicks", desc: "Adds +5 to click power" },
+    { name: "🔋 Energy Boost", desc: "Increases all idle production by 30%" },
+    { name: "🤖 Auto-Clicker I", desc: "Automatically clicks every 2 seconds" },
+    { name: "⛏️ Miner Efficiency", desc: "Each miner produces +2 more $/s" },
+    { name: "🏭 Factory Tuning", desc: "Each factory produces +5 more $/s" },
+    { name: "✨ Double Gains", desc: "Increases all idle production by 50%" },
+    { name: "🚀 Production Surge", desc: "Doubles click power" },
+    { name: "🔄 Idle Multiplier", desc: "Increases all idle production by 80%" },
+    { name: "⚡ Supercharge", desc: "Doubles click power and +50% idle" },
+    { name: "🌟 Mega Boost", desc: "Doubles all idle production" },
+    { name: "🛠️ Advanced Tools", desc: "Click power ×2.5" },
+    { name: "🤖 Auto-Clicker II", desc: "Strong auto-click every second (×2 power)" },
+    { name: "🔥 Overdrive", desc: "All idle production ×2.5" },
+    { name: "💥 Exponential Growth", desc: "Click ×3 and idle ×2" },
+    { name: "🦾 Robot Army", desc: "Each factory produces +50 more $/s" },
+    { name: "🌌 Quantum Factory", desc: "Final boost: Click ×4 and idle ×3" }
+  ];
+  return techData[index];
+}
+
+function reinitializeTechTree() {
+  // Original tech data in order
+  const originalTechData = [
+    { name: "🔧 Better Tools", desc: "Increases click power by 50%" },
+    { name: "⚙️ Gear Optimization", desc: "Each miner produces +1 $/s" },
+    { name: "⏱️ Faster Clicks", desc: "Adds +5 to click power" },
+    { name: "🔋 Energy Boost", desc: "Increases all idle production by 30%" },
+    { name: "🤖 Auto-Clicker I", desc: "Automatically clicks every 2 seconds" },
+    { name: "⛏️ Miner Efficiency", desc: "Each miner produces +2 more $/s" },
+    { name: "🏭 Factory Tuning", desc: "Each factory produces +5 more $/s" },
+    { name: "✨ Double Gains", desc: "Increases all idle production by 50%" },
+    { name: "🚀 Production Surge", desc: "Doubles click power" },
+    { name: "🔄 Idle Multiplier", desc: "Increases all idle production by 80%" },
+    { name: "⚡ Supercharge", desc: "Doubles click power and +50% idle" },
+    { name: "🌟 Mega Boost", desc: "Doubles all idle production" },
+    { name: "🛠️ Advanced Tools", desc: "Click power ×2.5" },
+    { name: "🤖 Auto-Clicker II", desc: "Strong auto-click every second (×2 power)" },
+    { name: "🔥 Overdrive", desc: "All idle production ×2.5" },
+    { name: "💥 Exponential Growth", desc: "Click ×3 and idle ×2" },
+    { name: "🦾 Robot Army", desc: "Each factory produces +50 more $/s" },
+    { name: "🌌 Quantum Factory", desc: "Final boost: Click ×4 and idle ×3" }
+  ];
+
+  // Clear the tech tree sections
+  const techTree = document.querySelector('.card:has(button[id^="tech"])');
+  const moreTechSection = document.getElementById('moreTechSection');
+
+  // Rebuild the first 3 techs
+  let techHTML = '';
+  for (let i = 0; i < 3; i++) {
+    techHTML += `<button class="tech" id="tech${i + 1}">${originalTechData[i].name} ($<span id="cost${i + 1}">${techCosts[i]}</span>)</button>
+    <div class="tech-desc">${originalTechData[i].desc}</div>`;
+  }
+  techHTML += '<button class="more-tech-btn" id="toggleMoreTech">SHOW MORE TECH ▼</button>';
+
+  // Rebuild the more tech section
+  let moreTechHTML = '';
+  for (let i = 3; i < 18; i++) {
+    moreTechHTML += `<button class="tech" id="tech${i + 1}">${originalTechData[i].name} ($<span id="cost${i + 1}">${techCosts[i]}</span>)</button>
+    <div class="tech-desc">${originalTechData[i].desc}</div>`;
+  }
+
+  // Find the tech tree card and update it
+  const techTreeCard = document.querySelector('.card .pixel');
+  if (techTreeCard && techTreeCard.textContent === '🔬 TECH TREE') {
+    const card = techTreeCard.parentElement;
+    // Clear existing tech content
+    let currentElement = techTreeCard.nextElementSibling;
+    while (currentElement && currentElement.id !== 'prestigeSection') {
+      const nextElement = currentElement.nextElementSibling;
+      if (currentElement.tagName !== 'DIV' || currentElement.id !== 'prestigeSection') {
+        currentElement.remove();
+      }
+      currentElement = nextElement;
+    }
+
+    // Add new tech content
+    techTreeCard.insertAdjacentHTML('afterend', techHTML);
+    const toggleBtn = document.getElementById('toggleMoreTech');
+    toggleBtn.insertAdjacentHTML('afterend', `<div id="moreTechSection">${moreTechHTML}</div>`);
+  }
+
+  // Reattach event listeners
+  attachTechEventListeners();
+}
+
+function createParticle(x, y, type = 'money', baseCount = 3) {
+  if (!moneyParticles && type === 'money') return;
+  if (!clickParticles && type === 'click') return;
+  if (!productionParticles && type === 'production') return;
+
+  const count = updateParticleCount(type, baseCount);
+
+  for (let i = 0; i < count; i++) {
+    const particle = document.createElement('div');
+    particle.className = `particle particle-${type}`;
+    particle.style.left = x + 'px';
+    particle.style.top = y + 'px';
+    particle.style.setProperty('--angle', Math.random() * 360 + 'deg');
+    particle.style.setProperty('--distance', (Math.random() * 50 + 20) + 'px');
+    particle.style.setProperty('--delay', Math.random() * 0.5 + 's');
+
+    document.body.appendChild(particle);
+
+    setTimeout(() => {
+      if (particle.parentNode) {
+        particle.parentNode.removeChild(particle);
+      }
+    }, 2000);
+  }
+}
+
+// Critical Click Functions
+function checkCriticalHit() {
+  // Base 2% chance, increases slightly with streak
+  const chance = Math.min(criticalChance + (criticalStreak * 0.01), 0.25); // Max 25% chance
+  return Math.random() < chance;
+}
+
+function getCriticalMultiplier() {
+  // Random chance for higher multipliers
+  const rand = Math.random();
+  if (rand < 0.7) return 2;      // 70% chance for 2x
+  if (rand < 0.9) return 5;      // 20% chance for 5x
+  if (rand < 0.98) return 10;    // 8% chance for 10x
+  return 25;                     // 2% chance for 25x
+}
+
+function handleCriticalClick(x, y, multiplier) {
+  // Update streak
+  const now = Date.now();
+  if (now - lastCriticalTime < 5000) { // Within 5 seconds
+    criticalStreak++;
+  } else {
+    criticalStreak = 1;
+  }
+  lastCriticalTime = now;
+
+  // Advanced visual effects (reduced intensity, no flash on streaks)
+  const isStreak = criticalStreak > 1;
+
+  if (multiplier >= 10) {
+    triggerScreenShake(1, 600); // Reduced from 2, Strong shake for high multipliers
+    if (!isStreak) triggerScreenFlash('#ffd700', 300); // No flash on streaks
+  } else if (multiplier >= 5) {
+    triggerScreenShake(0.75, 400); // Reduced from 1.5, Medium shake
+    if (!isStreak) triggerScreenFlash('#ff6b35', 200); // No flash on streaks
+  } else {
+    triggerScreenShake(0.5, 300); // Reduced from 1, Light shake
+    if (!isStreak) triggerScreenFlash('#4ecdc4', 150); // No flash on streaks
+  }
+
+  // Create critical particles
+  createCriticalParticles(x, y, multiplier);
+
+  // Create multiplier effect
+  createMultiplierEffect(multiplier, x, y - 30);
+
+  // Show critical hit notification
+  showCriticalNotification(multiplier);
+
+  // Play critical sound
+  if (soundEffectsEnabled) {
+    playCriticalSound(multiplier);
+  }
+}
+
+function createCriticalParticles(x, y, multiplier) {
+  // Create explosion of particles based on multiplier
+  const particleCount = Math.min(multiplier * 3, 15);
+
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle particle-critical';
+    particle.textContent = multiplier + 'x';
+    particle.style.left = x + 'px';
+    particle.style.top = y + 'px';
+    particle.style.setProperty('--angle', Math.random() * 360 + 'deg');
+    particle.style.setProperty('--distance', (Math.random() * 100 + 50) + 'px');
+
+    document.body.appendChild(particle);
+
+    setTimeout(() => {
+      if (particle.parentNode) {
+        particle.parentNode.removeChild(particle);
+      }
+    }, 3000);
+  }
+}
+
+function showCriticalNotification(multiplier) {
+  const notif = document.createElement('div');
+  notif.className = 'critical-notif';
+  notif.innerHTML = `💥 CRITICAL HIT!<br><span style="font-size:1.5em;color:#ff0">${multiplier}x MONEY!</span>`;
+
+  document.body.appendChild(notif);
+
+  setTimeout(() => {
+    if (notif.parentNode) {
+      notif.parentNode.removeChild(notif);
+    }
+  }, 2000);
+}
+
+function playCriticalSound(multiplier) {
+  // Nintendo-style critical hit sounds
+  if (multiplier >= 10) {
+    // Epic critical - Zelda-like triumph
+    createTone(783.99, 0.15, 'square', soundEffectsVolume * 0.4); // G5
+    setTimeout(() => createTone(1046.50, 0.15, 'square', soundEffectsVolume * 0.4), 120); // C6
+    setTimeout(() => createTone(1318.51, 0.15, 'square', soundEffectsVolume * 0.4), 240); // E6
+    setTimeout(() => createTone(1567.98, 0.3, 'triangle', soundEffectsVolume * 0.5), 360); // G6
+  } else {
+    // Standard critical - Mario coin sound
+    createTone(523.25, 0.1, 'square', soundEffectsVolume * 0.4); // C5
+    setTimeout(() => createTone(659.25, 0.1, 'square', soundEffectsVolume * 0.4), 80); // E5
+    setTimeout(() => createTone(783.99, 0.1, 'square', soundEffectsVolume * 0.4), 160); // G5
+    setTimeout(() => createTone(1046.50, 0.2, 'triangle', soundEffectsVolume * 0.3), 240); // C6
+  }
+}
+
+// Advanced Visual Effects Functions
+function triggerScreenShake(intensity = 1, duration = 500) {
+  if (!screenShake) return;
+
+  const container = document.querySelector('.container');
+  if (!container) return;
+
+  container.style.transition = 'transform 0.05s ease-out';
+  let shakeCount = 0;
+  const maxShakes = duration / 50;
+
+  const shake = () => {
+    if (shakeCount >= maxShakes) {
+      container.style.transform = '';
+      container.style.transition = '';
+      return;
+    }
+
+    const xOffset = (Math.random() - 0.5) * intensity * 10;
+    const yOffset = (Math.random() - 0.5) * intensity * 10;
+    container.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+
+    shakeCount++;
+    setTimeout(shake, 50);
+  };
+
+  shake();
+}
+
+function triggerScreenFlash(color = '#ffffff', duration = 300) {
+  if (!screenFlash) return;
+
+  const flash = document.createElement('div');
+  flash.style.position = 'fixed';
+  flash.style.top = '0';
+  flash.style.left = '0';
+  flash.style.width = '100%';
+  flash.style.height = '100%';
+  flash.style.backgroundColor = color;
+  flash.style.opacity = '0.3';
+  flash.style.pointerEvents = 'none';
+  flash.style.zIndex = '9999';
+  flash.style.transition = `opacity ${duration}ms ease-out`;
+
+  document.body.appendChild(flash);
+
+  setTimeout(() => {
+    flash.style.opacity = '0';
+    setTimeout(() => {
+      if (flash.parentNode) {
+        flash.parentNode.removeChild(flash);
+      }
+    }, duration);
+  }, 100);
+}
+
+function createMultiplierEffect(multiplier, x, y) {
+  if (!multiplierEffects) return;
+
+  const effect = document.createElement('div');
+  effect.className = 'multiplier-effect';
+  effect.textContent = `${multiplier}x`;
+  effect.style.left = x + 'px';
+  effect.style.top = y + 'px';
+
+  // Color based on multiplier
+  if (multiplier >= 25) {
+    effect.style.color = '#ff1493'; // Deep pink for epic
+    effect.style.textShadow = '0 0 20px #ff1493';
+  } else if (multiplier >= 10) {
+    effect.style.color = '#ffd700'; // Gold for high
+    effect.style.textShadow = '0 0 15px #ffd700';
+  } else if (multiplier >= 5) {
+    effect.style.color = '#ff6b35'; // Orange for medium
+    effect.style.textShadow = '0 0 10px #ff6b35';
+  } else {
+    effect.style.color = '#4ecdc4'; // Teal for basic
+    effect.style.textShadow = '0 0 8px #4ecdc4';
+  }
+
+  document.body.appendChild(effect);
+
+  setTimeout(() => {
+    if (effect.parentNode) {
+      effect.parentNode.removeChild(effect);
+    }
+  }, 2000);
+}
+
+function createBackgroundParticles() {
+  if (!backgroundParticles) return;
+
+  const particleCount = 3;
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'background-particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.top = Math.random() * 100 + '%';
+    particle.style.setProperty('--float-speed', (Math.random() * 20 + 10) + 's');
+
+    document.body.appendChild(particle);
+
+    setTimeout(() => {
+      if (particle.parentNode) {
+        particle.parentNode.removeChild(particle);
+      }
+    }, 30000); // Long lifetime for ambient effect
+  }
+}
+
+function animateProduction() {
+  if (!productionAnimations) return;
+
+  // Animate the stats display briefly
+  const statsSub = document.querySelector('.stats-sub');
+  if (statsSub) {
+    statsSub.style.animation = 'none';
+    statsSub.offsetHeight; // Trigger reflow
+    statsSub.style.animation = 'productionPulse 0.5s ease-out';
+  }
+}
+
+// Auto-Buyer Functions
+function runAutoBuyer() {
+  if (!autoBuyerEnabled || !game) return;
+
+  // Define producers in order of efficiency (most expensive first)
+  const producers = [
+    { name: 'quantum', cost: game.quantumCost, count: game.quantum, baseProduction: 5000 },
+    { name: 'orbital', cost: game.orbitalCost, count: game.orbital, baseProduction: 500 },
+    { name: 'robot', cost: game.robotCost, count: game.robots, baseProduction: 50 },
+    { name: 'factory', cost: game.factoryCost, count: game.factories, baseProduction: 10 },
+    { name: 'miner', cost: game.minerCost, count: game.miners, baseProduction: 2 }
+  ];
+
+  let purchased = false;
+
+  if (autoBuyerMode === 'efficient') {
+    // Buy the most expensive producer we can afford (most efficient)
+    for (const producer of producers) {
+      if (game.money >= producer.cost * autoBuyerThreshold) {
+        buyProducer(producer.name);
+        purchased = true;
+        break; // Only buy one per cycle
+      }
+    }
+  } else if (autoBuyerMode === 'cheapest') {
+    // Buy the cheapest available producer
+    for (let i = producers.length - 1; i >= 0; i--) {
+      const producer = producers[i];
+      if (game.money >= producer.cost * autoBuyerThreshold) {
+        buyProducer(producer.name);
+        purchased = true;
+        break;
+      }
+    }
+  } else if (autoBuyerMode === 'random') {
+    // Randomly select from affordable producers
+    const affordable = producers.filter(p => game.money >= p.cost * autoBuyerThreshold);
+    if (affordable.length > 0) {
+      const randomProducer = affordable[Math.floor(Math.random() * affordable.length)];
+      buyProducer(randomProducer.name);
+      purchased = true;
+    }
+  }
+
+  return purchased;
+}
+
+function buyProducer(producerName) {
+  const oldMoney = game.money;
+
+  switch (producerName) {
+    case 'miner':
+      if (game.money >= game.minerCost) {
+        game.money -= game.minerCost;
+        game.miners += 1;
+        game.idlePower += 2;
+        game.minerCost = Math.round(game.minerCost * 1.5);
+        triggerAutoPurchaseFeedback('miner');
+      }
+      break;
+    case 'factory':
+      if (game.money >= game.factoryCost) {
+        game.money -= game.factoryCost;
+        game.factories += 1;
+        game.idlePower += 10;
+        game.factoryCost = Math.round(game.factoryCost * 1.6);
+        triggerAutoPurchaseFeedback('factory');
+      }
+      break;
+    case 'robot':
+      if (game.money >= game.robotCost) {
+        game.money -= game.robotCost;
+        game.robots += 1;
+        game.idlePower += 50;
+        game.robotCost = Math.round(game.robotCost * 1.6);
+        triggerAutoPurchaseFeedback('robot');
+      }
+      break;
+    case 'orbital':
+      if (game.money >= game.orbitalCost) {
+        game.money -= game.orbitalCost;
+        game.orbitals += 1;
+        game.idlePower += 500;
+        game.orbitalCost = Math.round(game.orbitalCost * 1.6);
+        triggerAutoPurchaseFeedback('orbital');
+      }
+      break;
+    case 'quantum':
+      if (game.money >= game.quantumCost) {
+        game.money -= game.quantumCost;
+        game.quantum += 1;
+        game.idlePower += 5000;
+        game.quantumCost = Math.round(game.quantumCost * 1.6);
+        triggerAutoPurchaseFeedback('quantum');
+      }
+      break;
+  }
+
+  // Update total earned and UI
+  game.totalEarned += (oldMoney - game.money);
+  updateUI();
+  saveGame();
+}
+
+function triggerAutoPurchaseFeedback(producerType) {
+  // Subtle feedback for auto-purchases
+  if (soundEffectsEnabled) {
+    createTone(400 + Math.random() * 200, 0.1, 'sine', soundEffectsVolume * 0.3);
+  }
+
+  // Small particle effect
+  if (clickParticles) {
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight * 0.3;
+    createParticle(x, y, 'click', 1);
+  }
+}
+
+// Theme Management Functions
+
+function applyParticleStyle() {
+  // Remove all existing particle classes
+  document.body.classList.remove(
+    'particle-stars', 'particle-hearts', 'particle-geometric', 'particle-energy',
+    'particle-rainbow', 'particle-gold', 'particle-blue', 'particle-red', 'particle-green',
+    'particle-speed-slow', 'particle-speed-fast',
+    'particle-count-low', 'particle-count-high',
+    'particle-fireworks', 'particle-explosion', 'particle-sparks', 'particle-magic', 'particle-confetti', 'particle-bubbles'
+  );
+
+  // Add current particle style classes
+  if (particleStyle !== 'default') {
+    document.body.classList.add(`particle-${particleStyle}`);
+  }
+  if (particleColor !== 'default') {
+    document.body.classList.add(`particle-${particleColor}`);
+  }
+  if (particleSpeed !== 'normal') {
+    document.body.classList.add(`particle-speed-${particleSpeed}`);
+  }
+  if (particleCount !== 'normal') {
+    document.body.classList.add(`particle-count-${particleCount}`);
+  }
+  // Add advanced particle effects
+  document.body.classList.add(`particle-${advancedParticles}`);
+}
+
+function updateParticleCount(type, baseCount) {
+  let multiplier = 1;
+  if (particleCount === 'low') multiplier = 0.5;
+  if (particleCount === 'high') multiplier = 1.5;
+
+  return Math.max(1, Math.floor(baseCount * multiplier));
+}
+
+// Load visual settings
+if (localStorage.getItem('moneyParticles') !== null) {
+  moneyParticles = localStorage.getItem('moneyParticles') === 'true';
+  document.getElementById('moneyParticles').checked = moneyParticles;
+}
+
+if (localStorage.getItem('clickParticles') !== null) {
+  clickParticles = localStorage.getItem('clickParticles') === 'true';
+  document.getElementById('clickParticles').checked = clickParticles;
+}
+
+if (localStorage.getItem('productionParticles') !== null) {
+  productionParticles = localStorage.getItem('productionParticles') === 'true';
+  document.getElementById('productionParticles').checked = productionParticles;
+}
+
+if (localStorage.getItem('buttonAnimations') !== null) {
+  buttonAnimations = localStorage.getItem('buttonAnimations') === 'true';
+  document.getElementById('buttonAnimations').checked = buttonAnimations;
+}
+
+if (localStorage.getItem('backgroundEffects') !== null) {
+  backgroundEffects = localStorage.getItem('backgroundEffects') === 'true';
+  document.getElementById('backgroundEffects').checked = backgroundEffects;
+}
+
+if (localStorage.getItem('glowEffects') !== null) {
+  glowEffects = localStorage.getItem('glowEffects') === 'true';
+  document.getElementById('glowEffects').checked = glowEffects;
+}
+
+// Load theme and particle settings
+
+if (localStorage.getItem('particleStyle')) {
+  particleStyle = localStorage.getItem('particleStyle');
+  document.getElementById('particleStyleSelector').value = particleStyle;
+}
+
+if (localStorage.getItem('particleColor')) {
+  particleColor = localStorage.getItem('particleColor');
+  document.getElementById('particleColorSelector').value = particleColor;
+}
+
+if (localStorage.getItem('particleCount')) {
+  particleCount = localStorage.getItem('particleCount');
+  document.getElementById('particleCountSelector').value = particleCount;
+}
+
+if (localStorage.getItem('particleSpeed')) {
+  particleSpeed = localStorage.getItem('particleSpeed');
+  document.getElementById('particleSpeedSelector').value = particleSpeed;
+}
+
+// Load advanced visual settings
+
+if (localStorage.getItem('screenFlash') !== null) {
+  screenFlash = localStorage.getItem('screenFlash') === 'true';
+  document.getElementById('screenFlash').checked = screenFlash;
+}
+
+if (localStorage.getItem('backgroundParticles') !== null) {
+  backgroundParticles = localStorage.getItem('backgroundParticles') === 'true';
+  document.getElementById('backgroundParticles').checked = backgroundParticles;
+}
+
+if (localStorage.getItem('multiplierEffects') !== null) {
+  multiplierEffects = localStorage.getItem('multiplierEffects') === 'true';
+  document.getElementById('multiplierEffects').checked = multiplierEffects;
+}
+
+if (localStorage.getItem('productionAnimations') !== null) {
+  productionAnimations = localStorage.getItem('productionAnimations') === 'true';
+  document.getElementById('productionAnimations').checked = productionAnimations;
+}
+
+if (localStorage.getItem('advancedParticles')) {
+  advancedParticles = localStorage.getItem('advancedParticles');
+  document.getElementById('advancedParticleSelector').value = advancedParticles;
+}
+
+// Load auto-buyer settings
+if (localStorage.getItem('autoBuyerPurchased') !== null) {
+  autoBuyerPurchased = localStorage.getItem('autoBuyerPurchased') === 'true';
+}
+
+if (localStorage.getItem('autoBuyerEnabled') !== null) {
+  autoBuyerEnabled = localStorage.getItem('autoBuyerEnabled') === 'true';
+}
+
+if (localStorage.getItem('autoBuyerMode')) {
+  autoBuyerMode = localStorage.getItem('autoBuyerMode');
+}
+
+if (localStorage.getItem('autoBuyerInterval')) {
+  autoBuyerInterval = parseInt(localStorage.getItem('autoBuyerInterval'));
+}
+
+if (localStorage.getItem('autoBuyerThreshold')) {
+  autoBuyerThreshold = parseFloat(localStorage.getItem('autoBuyerThreshold'));
+}
+
+function saveGame() {
+  localStorage.setItem('pixelFactorySave2', JSON.stringify(game));
+}
+
+// Initialize music
+if (musicEnabled) {
+  playBackgroundMusic();
+}
+
+// Initialize visual effects
+updateBackgroundEffects();
+updateGlowEffects();
+updateButtonAnimations();
+
+// Initialize theme and particles
+applyParticleStyle();
+
+// Initialize tech tree event listeners
+attachTechEventListeners();
+
+renderAchievements();
+updateUI();
+</script>
+</body>
+</html>
